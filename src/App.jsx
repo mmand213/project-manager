@@ -55,7 +55,7 @@ export default function App() {
       </header>
 
       {/* Main content */}
-      <main className="p-6 min-h-screen bg-pageBg">
+      <main className="p-6 min-h-screen relative">
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
           <SearchBar value={search} onChange={setSearch} />
           <FilterPanel filter={filter} onChange={setFilter} />
