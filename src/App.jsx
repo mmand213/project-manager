@@ -41,20 +41,20 @@ export default function App() {
       {/* Ninja‐star animated background */}
       <NinjaStarsBackground />
 
-      {/* Modern white nav bar with circle “PM” logo */}
+      {/* Modern nav bar */}
       <header className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
           
-          {/* Left: Circle logo + title */}
+          {/* Left: larger circle logo + title */}
           <div className="flex items-center">
             <div
               className="
-                w-12 h-12 flex items-center justify-center
+                w-16 h-16 flex items-center justify-center
                 bg-gradient-to-br from-primary to-primaryLight
                 rounded-full shadow-lg
               "
             >
-              <span className="text-white text-2xl font-extrabold">
+              <span className="text-white text-3xl font-extrabold">
                 PM
               </span>
             </div>
@@ -91,8 +91,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="p-6 min-h-screen relative">
+      {/* Main content wrapper */}
+      <main className="max-w-7xl mx-auto px-6 py-8 relative">
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
           <SearchBar value={search} onChange={setSearch} />
           <FilterPanel filter={filter} onChange={setFilter} />
