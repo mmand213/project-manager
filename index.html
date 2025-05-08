@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- tell the browser to resolve everything under the /it-infra-pm/ path -->
+  <!-- Make all relative URLs resolve under /it-infra-pm/ -->
   <base href="/it-infra-pm/">
 
   <meta charset="UTF-8" />
@@ -19,7 +19,7 @@
 <body class="bg-gray-100 font-poppins">
   <div id="root"></div>
 
-  <!-- Vite will transform this into the proper /assets/index-*.js -->
-  <script type="module" src="/src/main.jsx"></script>
+  <!-- Let Vite replace this with the built, hashed JS bundle -->
+  <script type="module" src="./src/main.jsx"></script>
 </body>
 </html>
