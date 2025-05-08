@@ -7,17 +7,21 @@ export default function ProjectModal({ project, onSave, onCancel }) {
   const [deadline, setDeadline] = useState(project.deadline);
   const [status, setStatus] = useState(project.status);
   const [tasks, setTasks] = useState(project.tasks);
+  const [newTaskText, setNewTaskText] = useState('');
 
   const addTask = () => {
-    const text = prompt('New task:');
-    if (text) setTasks([...tasks, { id: Date.now(), text, completed: false }]);
+    const text = newTaskText.trim();
+    if (text) {
+      setTasks([...tasks, { id: Date.now(), text, completed: false }]);
+      setNewTaskText('');
+    }
   };
-  const toggleTask = (id) =>
+  const toggleTask = id =>
     setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-  const deleteTask = (id) =>
+  const deleteTask = id =>
     setTasks(tasks.filter(t => t.id !== id));
-
-  const handleSubmit = () => onSave({ ...project, title, deadline, status, tasks });
+  const handleSubmit = () =>
+    onSave({ ...project, title, deadline, status, tasks });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -26,7 +30,7 @@ export default function ProjectModal({ project, onSave, onCancel }) {
 
         {/* Title */}
         <div className="mb-4">
-          <label className="block mb-1">Title</label>
+          <label className="block mb-1 font-medium">Title</label>
           <input
             className="w-full p-2 border rounded"
             value={title}
@@ -36,7 +40,7 @@ export default function ProjectModal({ project, onSave, onCancel }) {
 
         {/* Deadline */}
         <div className="mb-4">
-          <label className="block mb-1">Deadline</label>
+          <label className="block mb-1 font-medium">Deadline</label>
           <input
             type="date"
             className="w-full p-2 border rounded"
@@ -47,7 +51,7 @@ export default function ProjectModal({ project, onSave, onCancel }) {
 
         {/* Status */}
         <div className="mb-4">
-          <label className="block mb-1">Status</label>
+          <label className="block mb-1 font-medium">Status</label>
           <select
             className="w-full p-2 border rounded"
             value={status}
@@ -61,10 +65,20 @@ export default function ProjectModal({ project, onSave, onCancel }) {
 
         {/* Tasks */}
         <div className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-xl">Tasks</h3>
-            <button onClick={addTask} className="text-green-600">
-              + Add
+          <label className="block mb-2 font-medium">Tasks</label>
+          <div className="flex mb-3">
+            <input
+              type="text"
+              placeholder="New task..."
+              className="flex-1 p-2 border rounded mr-2"
+              value={newTaskText}
+              onChange={e => setNewTaskText(e.target.value)}
+            />
+            <button
+              onClick={addTask}
+              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+              Add
             </button>
           </div>
           <div className="max-h-40 overflow-y-auto">
@@ -81,10 +95,16 @@ export default function ProjectModal({ project, onSave, onCancel }) {
 
         {/* Actions */}
         <div className="flex justify-end space-x-3">
-          <button onClick={onCancel} className="px-4 py-2 border rounded">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 border rounded hover:bg-gray-100"
+          >
             Cancel
           </button>
-          <button onClick={handleSubmit} className="px-4 py-2 bg-blue-600 text-white rounded">
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
             Save
           </button>
         </div>
