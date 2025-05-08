@@ -7,7 +7,11 @@ export default function ProjectCard({ project, onEdit, onDelete }) {
   const progress = total ? Math.round((done / total) * 100) : 0;
 
   return (
-    <div className="bg-white p-4 rounded shadow">
+    <div
+ className="
+ bg-cardBg shadow-lg rounded-2xl p-6
+ transform transition hover:-translate-y-1 hover:shadow-2xl"
+ >
       <h2 className="text-xl font-semibold mb-2">{project.title}</h2>
       <div className="h-2 bg-gray-200 rounded mb-2">
         <div
