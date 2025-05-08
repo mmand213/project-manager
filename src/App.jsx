@@ -1,114 +1,82 @@
-// src/components/ProjectModal.jsx
-import React, { useState } from 'react';
-import TaskItem from './TaskItem';
+// src/App.jsx
+import React, { useState, useEffect } from 'react';
+import NinjaStarsBackground from './components/NinjaStarsBackground';
+import Dashboard from './components/Dashboard';
+import ProjectModal from './components/ProjectModal';
+import FilterPanel from './components/FilterPanel';
+import SearchBar from './components/SearchBar';
+import { loadProjects, saveProjects } from './utils/storage';
 
-export default function ProjectModal({ project, onSave, onCancel }) {
-  const [title, setTitle] = useState(project.title);
-  const [deadline, setDeadline] = useState(project.deadline);
-  const [status, setStatus] = useState(project.status);
-  const [tasks, setTasks] = useState(project.tasks);
-  const [newTaskText, setNewTaskText] = useState('');
+export default function App() {
+  const [projects, setProjects] = useState([]);
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [modalProject, setModalProject] = useState(null);
 
-  const addTask = () => {
-    const text = newTaskText.trim();
-    if (text) {
-      setTasks([...tasks, { id: Date.now(), text, completed: false }]);
-      setNewTaskText('');
-    }
-  };
-  const toggleTask = id =>
-    setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
-  const deleteTask = id =>
-    setTasks(tasks.filter(t => t.id !== id));
-  const handleSubmit = () =>
-    onSave({ ...project, title, deadline, status, tasks });
+  useEffect(() => {
+    setProjects(loadProjects());
+  }, []);
+
+  useEffect(() => {
+    saveProjects(projects);
+  }, [projects]);
+
+  const openModal = (proj) =>
+    setModalProject(
+      proj || { id: Date.now(), title: '', tasks: [], status: 'upcoming', deadline: '' }
+    );
+  const closeModal = () => setModalProject(null);
+
+  function saveProject(proj) {
+    setProjects((prev) => {
+      const exists = prev.find((p) => p.id === proj.id);
+      if (exists) return prev.map((p) => (p.id === proj.id ? proj : p));
+      return [...prev, proj];
+    });
+    closeModal();
+  }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded w-full max-w-lg">
-        <h2 className="text-2xl mb-4">Edit Project</h2>
+    <>
+      {/* Animated ninja-star background */}
+      <NinjaStarsBackground />
 
-        {/* Title */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Title</label>
-          <input
-            className="w-full p-2 border rounded"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
+      {/* Hero header */}
+      <header className="bg-gradient-to-r from-primary to-accent p-6 shadow-lg flex justify-between items-center">
+        <h1 className="text-3xl text-white font-semibold">
+          IT Infrastructure Projects
+        </h1>
+        <button
+          onClick={() => openModal()}
+          className="bg-white text-primary px-4 py-2 rounded-lg hover:bg-gray-100 transition"
+        >
+          New Project
+        </button>
+      </header>
+
+      {/* Main content */}
+      <main className="p-6 min-h-screen bg-pageBg">
+        <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
+          <SearchBar value={search} onChange={setSearch} />
+          <FilterPanel filter={filter} onChange={setFilter} />
+        </div>
+
+        <Dashboard
+          projects={projects}
+          filter={filter}
+          search={search}
+          onEdit={openModal}
+          onDelete={(id) => setProjects(projects.filter((p) => p.id !== id))}
+        />
+
+        {modalProject && (
+          <ProjectModal
+            project={modalProject}
+            onSave={saveProject}
+            onCancel={closeModal}
           />
-        </div>
-
-        {/* Deadline */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Deadline</label>
-          <input
-            type="date"
-            className="w-full p-2 border rounded"
-            value={deadline}
-            onChange={e => setDeadline(e.target.value)}
-          />
-        </div>
-
-        {/* Status */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Status</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={status}
-            onChange={e => setStatus(e.target.value)}
-          >
-            <option value="upcoming">Upcoming</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-          </select>
-        </div>
-
-        {/* Tasks */}
-        <div className="mb-4">
-          <label className="block mb-2 font-medium">Tasks</label>
-          <div className="flex mb-3">
-            <input
-              type="text"
-              placeholder="New task..."
-              className="flex-1 p-2 border rounded mr-2"
-              value={newTaskText}
-              onChange={e => setNewTaskText(e.target.value)}
-            />
-            <button
-              onClick={addTask}
-              className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Add
-            </button>
-          </div>
-          <div className="max-h-40 overflow-y-auto">
-            {tasks.map(t => (
-              <TaskItem
-                key={t.id}
-                task={t}
-                onToggle={() => toggleTask(t.id)}
-                onDelete={() => deleteTask(t.id)}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex justify-end space-x-3">
-          <button
-            onClick={onCancel}
-            className="px-4 py-2 border rounded hover:bg-gray-100"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </div>
+        )}
+      </main>
+    </>
   );
 }
