@@ -1,15 +1,29 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Ensure all relative URLs are prefixed with your repo name -->
+  <base href="/it-infra-pm/">
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>IT Infra PM</title>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Vite will inject built CSS here -->
+  <link rel="stylesheet" href="./assets/index.css" />
 </head>
 <body class="bg-gray-100 font-poppins">
   <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+
+  <!-- Vite will inject your built JS here -->
+  <script type="module" src="./assets/index.js"></script>
 </body>
 </html>
