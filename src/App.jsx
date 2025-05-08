@@ -13,13 +13,8 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [modalProject, setModalProject] = useState(null);
 
-  useEffect(() => {
-    setProjects(loadProjects());
-  }, []);
-
-  useEffect(() => {
-    saveProjects(projects);
-  }, [projects]);
+  useEffect(() => { setProjects(loadProjects()); }, []);
+  useEffect(() => { saveProjects(projects); }, [projects]);
 
   const openModal = (proj) =>
     setModalProject(
@@ -41,10 +36,10 @@ export default function App() {
       {/* Animated ninja-star background */}
       <NinjaStarsBackground />
 
-      {/* Hero header */}
+      {/* Hero header with new title */}
       <header className="bg-gradient-to-r from-primary to-accent p-6 shadow-lg flex justify-between items-center">
-        <h1 className="text-3xl text-white font-semibold">
-          IT Infrastructure Projects
+        <h1 className="text-4xl font-extrabold font-poppins text-green-300">
+          Project Manager
         </h1>
         <button
           onClick={() => openModal()}
