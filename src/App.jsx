@@ -13,8 +13,13 @@ export default function App() {
   const [search, setSearch] = useState('');
   const [modalProject, setModalProject] = useState(null);
 
-  useEffect(() => { setProjects(loadProjects()); }, []);
-  useEffect(() => { saveProjects(projects); }, [projects]);
+  useEffect(() => {
+    setProjects(loadProjects());
+  }, []);
+
+  useEffect(() => {
+    saveProjects(projects);
+  }, [projects]);
 
   const openModal = (proj) =>
     setModalProject(
@@ -36,19 +41,22 @@ export default function App() {
       {/* Ninja-star animated background */}
       <NinjaStarsBackground />
 
-      {/* Modern white nav bar */}
+      {/* Updated modern nav bar */}
       <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-          {/* Left: Logo / Brand */}
-          <div className="flex items-center">
-            <span className="text-2xl font-extrabold text-primary">PM</span>
-            <span className="ml-2 text-xl font-semibold text-gray-800">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
+          
+          {/* Left: Big PM + subtitle */}
+          <div className="flex items-baseline">
+            <span className="text-6xl font-extrabold text-primary leading-none">
+              PM
+            </span>
+            <span className="ml-3 text-2xl font-medium text-gray-800">
               Project Manager
             </span>
           </div>
 
           {/* Center: Navigation links */}
-          <nav className="hidden md:flex space-x-8">
+          <nav className="hidden md:flex space-x-8 text-lg">
             <a href="#" className="text-gray-600 hover:text-primary transition">
               Dashboard
             </a>
@@ -67,7 +75,7 @@ export default function App() {
           <div className="flex items-center">
             <button
               onClick={() => openModal()}
-              className="bg-primary text-white px-4 py-1 rounded-lg hover:bg-primaryLight transition"
+              className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primaryLight transition"
             >
               New Project
             </button>
