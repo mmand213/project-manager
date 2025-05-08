@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Ensure all relative URLs are prefixed with your repo name -->
+  <!-- Prefix all URLs for GitHub Pages -->
   <base href="/it-infra-pm/">
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <title>IT Infra PM</title>
 
   <!-- Google Fonts -->
@@ -15,15 +14,12 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
     rel="stylesheet"
-  />
-
-  <!-- Vite will inject built CSS here -->
-  <link rel="stylesheet" href="./assets/index.css" />
+  >
 </head>
 <body class="bg-gray-100 font-poppins">
   <div id="root"></div>
 
-  <!-- Vite will inject your built JS here -->
-  <script type="module" src="./assets/index.js"></script>
+  <!-- Vite will transform this into the correct hashed .js bundle -->
+  <script type="module" src="./src/main.jsx"></script>
 </body>
 </html>
