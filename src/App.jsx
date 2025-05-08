@@ -23,9 +23,9 @@ export default function App() {
   const closeModal = () => setModalProject(null);
 
   function saveProject(proj) {
-    setProjects((prev) => {
-      const exists = prev.find((p) => p.id === proj.id);
-      if (exists) return prev.map((p) => (p.id === proj.id ? proj : p));
+    setProjects(prev => {
+      const exists = prev.find(p => p.id === proj.id);
+      if (exists) return prev.map(p => p.id === proj.id ? proj : p);
       return [...prev, proj];
     });
     closeModal();
@@ -33,23 +33,49 @@ export default function App() {
 
   return (
     <>
-      {/* Animated ninja-star background */}
+      {/* Ninja-star animated background */}
       <NinjaStarsBackground />
 
-      {/* Hero header with new title */}
-      <header className="bg-gradient-to-r from-primary to-accent p-6 shadow-lg flex justify-between items-center">
-        <h1 className="text-4xl font-extrabold font-poppins text-green-300">
-          Project Manager
-        </h1>
-        <button
-          onClick={() => openModal()}
-          className="bg-white text-primary px-4 py-2 rounded-lg hover:bg-gray-100 transition"
-        >
-          New Project
-        </button>
+      {/* Modern white nav bar */}
+      <header className="bg-white shadow-md">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+          {/* Left: Logo / Brand */}
+          <div className="flex items-center">
+            <span className="text-2xl font-extrabold text-primary">PM</span>
+            <span className="ml-2 text-xl font-semibold text-gray-800">
+              Project Manager
+            </span>
+          </div>
+
+          {/* Center: Navigation links */}
+          <nav className="hidden md:flex space-x-8">
+            <a href="#" className="text-gray-600 hover:text-primary transition">
+              Dashboard
+            </a>
+            <a href="#" className="text-gray-600 hover:text-primary transition">
+              Projects
+            </a>
+            <a href="#" className="text-gray-600 hover:text-primary transition">
+              Reports
+            </a>
+            <a href="#" className="text-gray-600 hover:text-primary transition">
+              Settings
+            </a>
+          </nav>
+
+          {/* Right: New Project button */}
+          <div className="flex items-center">
+            <button
+              onClick={() => openModal()}
+              className="bg-primary text-white px-4 py-1 rounded-lg hover:bg-primaryLight transition"
+            >
+              New Project
+            </button>
+          </div>
+        </div>
       </header>
 
-      {/* Main content */}
+      {/* Main content area */}
       <main className="p-6 min-h-screen relative">
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
           <SearchBar value={search} onChange={setSearch} />
@@ -61,7 +87,7 @@ export default function App() {
           filter={filter}
           search={search}
           onEdit={openModal}
-          onDelete={(id) => setProjects(projects.filter((p) => p.id !== id))}
+          onDelete={id => setProjects(projects.filter(p => p.id !== id))}
         />
 
         {modalProject && (
