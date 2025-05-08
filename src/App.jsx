@@ -30,7 +30,7 @@ export default function App() {
   function saveProject(proj) {
     setProjects(prev => {
       const exists = prev.find(p => p.id === proj.id);
-      if (exists) return prev.map(p => p.id === proj.id ? proj : p);
+      if (exists) return prev.map(p => (p.id === proj.id ? proj : p));
       return [...prev, proj];
     });
     closeModal();
@@ -38,19 +38,27 @@ export default function App() {
 
   return (
     <>
-      {/* Ninja-star animated background */}
+      {/* Ninja‐star animated background */}
       <NinjaStarsBackground />
 
-      {/* Updated modern nav bar */}
+      {/* Modern white nav bar with circle “PM” logo */}
       <header className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
           
-          {/* Left: Big PM + subtitle */}
-          <div className="flex items-baseline">
-            <span className="text-6xl font-extrabold text-primary leading-none">
-              PM
-            </span>
-            <span className="ml-3 text-2xl font-medium text-gray-800">
+          {/* Left: Circle logo + title */}
+          <div className="flex items-center">
+            <div
+              className="
+                w-12 h-12 flex items-center justify-center
+                bg-gradient-to-br from-primary to-primaryLight
+                rounded-full shadow-lg
+              "
+            >
+              <span className="text-white text-2xl font-extrabold">
+                PM
+              </span>
+            </div>
+            <span className="ml-4 text-2xl font-medium text-gray-800">
               Project Manager
             </span>
           </div>
@@ -83,7 +91,7 @@ export default function App() {
         </div>
       </header>
 
-      {/* Main content area */}
+      {/* Main content */}
       <main className="p-6 min-h-screen relative">
         <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
           <SearchBar value={search} onChange={setSearch} />
