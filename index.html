@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Prefix all URLs for GitHub Pages -->
+  <!-- tell the browser to resolve everything under the /it-infra-pm/ path -->
   <base href="/it-infra-pm/">
 
   <meta charset="UTF-8" />
@@ -9,17 +9,17 @@
   <title>IT Infra PM</title>
 
   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
     href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
     rel="stylesheet"
-  >
+  />
 </head>
 <body class="bg-gray-100 font-poppins">
   <div id="root"></div>
 
-  <!-- Vite will transform this into the correct hashed .js bundle -->
-  <script type="module" src="./src/main.jsx"></script>
+  <!-- Vite will transform this into the proper /assets/index-*.js -->
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
