@@ -1,79 +1,101 @@
 // src/components/SignupModal.jsx
 import React, { useState } from 'react';
-import { loadUsers, saveUsers, makeUser, saveCurrentUser } from '../utils/auth';
+import { loadUsers, saveUsers } from '../utils/users';
+import sha256 from 'js-sha256';
 
-export default function SignupModal({ onClose, onLogin }) {
-  const [name,    setName]    = useState('');
-  const [email,   setEmail]   = useState('');
-  const [pw,      setPw]      = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [error,   setError]   = useState('');
+export default function SignupModal({ onClose, onUsersChange }) {
+  const [name, setName]         = useState('');
+  const [email, setEmail]       = useState('');
+  const [password, setPassword] = useState('');
+  const [confirm, setConfirm]   = useState('');
+  const [error, setError]       = useState('');
+  const [showPwd, setShowPwd]   = useState(false);
 
   const handleSignup = () => {
-    if (!name || !email || !pw) return setError('All fields are required');
-    if (pw !== confirm)        return setError('Passwords must match');
-
-    const users = loadUsers();
-    if (users.some(u => u.email === email)) {
-      return setError('That email is already in use');
+    if (!name || !email || !password) {
+      return setError('All fields are required.');
     }
-
-    const newUser = makeUser({ name, email, password: pw });
-    users.push(newUser);
+    if (password !== confirm) {
+      return setError('Passwords do not match.');
+    }
+    const users = loadUsers();
+    users.push({
+      id: Date.now(),
+      name,
+      email,
+      passwordHash: sha256(password),
+    });
     saveUsers(users);
-
-    // auto-login new user
-    saveCurrentUser(newUser);
-    onLogin(newUser);
+    onUsersChange(users);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>
-        {error && <div className="text-red-600 mb-2">{error}</div>}
-        <label className="block mb-1 font-medium">Name</label>
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 relative">
+        <h2 className="text-2xl font-bold mb-4">Create Account</h2>
+        {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+
+        {/* Name */}
+        <label className="block mb-2 text-gray-700">Full Name</label>
         <input
-          className="w-full mb-3 p-2 border rounded"
+          type="text"
+          className="w-full mb-4 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={name}
           onChange={e => setName(e.target.value)}
+          placeholder="Jane Doe"
         />
 
-        <label className="block mb-1 font-medium">Email</label>
+        {/* Email */}
+        <label className="block mb-2 text-gray-700">Email Address</label>
         <input
           type="email"
-          className="w-full mb-3 p-2 border rounded"
+          className="w-full mb-4 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={email}
           onChange={e => setEmail(e.target.value)}
+          placeholder="you@example.com"
         />
 
-        <label className="block mb-1 font-medium">Password</label>
-        <input
-          type="password"
-          className="w-full mb-3 p-2 border rounded"
-          value={pw}
-          onChange={e => setPw(e.target.value)}
-        />
+        {/* Password */}
+        <label className="block mb-2 text-gray-700">Password</label>
+        <div className="relative mb-4">
+          <input
+            type={showPwd ? 'text' : 'password'}
+            className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+          <button
+            type="button"
+            className="absolute inset-y-0 right-3 flex items-center text-gray-500"
+            onClick={() => setShowPwd(v => !v)}
+          >
+            {showPwd ? 'Hide' : 'Show'}
+          </button>
+        </div>
 
-        <label className="block mb-1 font-medium">Confirm Password</label>
+        {/* Confirm Password */}
+        <label className="block mb-2 text-gray-700">Confirm Password</label>
         <input
           type="password"
-          className="w-full mb-4 p-2 border rounded"
+          className="w-full mb-6 px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
           value={confirm}
           onChange={e => setConfirm(e.target.value)}
+          placeholder="••••••••"
         />
 
-        <div className="flex justify-end space-x-2">
+        {/* Actions */}
+        <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 border rounded hover:bg-gray-100 transition"
+            className="px-4 py-2 text-gray-700 border rounded hover:bg-gray-100 transition"
           >
             Cancel
           </button>
           <button
             onClick={handleSignup}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
           >
             Sign Up
           </button>
