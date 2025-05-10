@@ -1,81 +1,110 @@
 // src/components/SignupModal.jsx
-import React, { useState, useEffect } from 'react';
-import { loadUsers, saveUsers } from '../utils/users';
-import { sha256 } from 'js-sha256';
+import React, { useState, useEffect } from 'react'
+import { loadUsers, saveUsers } from '../utils/users'
+import { sha256 } from 'js-sha256'
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_REGEX  = /^[A-Za-z\s]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const NAME_REGEX  = /^[A-Za-z\s]+$/
 const PWD_RULES = [
   { test: /.{8,}/,                 message: 'At least 8 characters' },
   { test: /[A-Z]/,                 message: 'One uppercase letter' },
   { test: /[a-z]/,                 message: 'One lowercase letter' },
   { test: /[0-9]/,                 message: 'One number' },
   { test: /[!@#$%^&*(),.?":{}|<>]/, message: 'One special character' },
-];
+]
 
 export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
-  const [name,    setName]    = useState('');
-  const [email,   setEmail]   = useState('');
-  const [pw,      setPw]      = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [success, setSuccess] = useState(false);
+  const [name,    setName]    = useState('')
+  const [email,   setEmail]   = useState('')
+  const [pw,      setPw]      = useState('')
+  const [confirm, setConfirm] = useState('')
+  const [success, setSuccess] = useState(false)
 
-  const [nameErr,    setNameErr]    = useState('');
-  const [emailErr,   setEmailErr]   = useState('');
-  const [pwdErrs,    setPwdErrs]    = useState([]);
-  const [confirmErr, setConfirmErr] = useState('');
+  // track which fields have been visited
+  const [touched, setTouched] = useState({
+    name: false,
+    email: false,
+    pw: false,
+    confirm: false
+  })
 
-  // real-time validation
+  // validation messages
+  const [nameErr,    setNameErr]    = useState('')
+  const [emailErr,   setEmailErr]   = useState('')
+  const [pwdErrs,    setPwdErrs]    = useState<string[]>([])
+  const [confirmErr, setConfirmErr] = useState('')
+
+  // validate name
   useEffect(() => {
-    const n = name.trim();
-    if (!n)               setNameErr('Name is required');
-    else if (!NAME_REGEX.test(n)) setNameErr('Only letters & spaces allowed');
-    else                  setNameErr('');
-  }, [name]);
+    if (!name && touched.name) {
+      setNameErr('Name is required')
+    } else if (name && !NAME_REGEX.test(name)) {
+      setNameErr('Only letters and spaces allowed')
+    } else {
+      setNameErr('')
+    }
+  }, [name, touched.name])
 
+  // validate email
   useEffect(() => {
-    const e = email.trim().toLowerCase();
-    if (!e)               setEmailErr('Email is required');
-    else if (!EMAIL_REGEX.test(e)) setEmailErr('Invalid email address');
-    else                  setEmailErr('');
-  }, [email]);
+    if (!email && touched.email) {
+      setEmailErr('Email is required')
+    } else if (email && !EMAIL_REGEX.test(email)) {
+      setEmailErr('Invalid email address')
+    } else {
+      setEmailErr('')
+    }
+  }, [email, touched.email])
 
+  // validate password rules
   useEffect(() => {
-    const errs = PWD_RULES
-      .filter(r => !r.test.test(pw))
-      .map(r => r.message);
-    setPwdErrs(errs);
-  }, [pw]);
+    if (touched.pw) {
+      const errs = PWD_RULES
+        .filter(r => !r.test.test(pw))
+        .map(r => r.message)
+      setPwdErrs(errs)
+    } else {
+      setPwdErrs([])
+    }
+  }, [pw, touched.pw])
 
+  // validate confirm
   useEffect(() => {
-    if (!confirm)                    setConfirmErr('Please confirm password');
-    else if (pw && confirm !== pw)   setConfirmErr('Passwords do not match');
-    else                             setConfirmErr('');
-  }, [confirm, pw]);
+    if (!confirm && touched.confirm) {
+      setConfirmErr('Please confirm password')
+    } else if (confirm && confirm !== pw) {
+      setConfirmErr('Passwords do not match')
+    } else {
+      setConfirmErr('')
+    }
+  }, [confirm, pw, touched.confirm])
 
   const allValid =
-    !nameErr && !emailErr && pwdErrs.length === 0 && !confirmErr;
+    !nameErr && !emailErr && pwdErrs.length === 0 && !confirmErr &&
+    name && email && pw && confirm
 
   const doSignup = () => {
-    if (!allValid) return;
+    if (!allValid) return
+    const users = loadUsers()
     const newUser = {
       id:           Date.now(),
       name:         name.trim(),
       email:        email.trim().toLowerCase(),
-      passwordHash: sha256(pw),
-    };
-    const users = loadUsers();
-    users.push(newUser);
-    saveUsers(users);
-    onUsersChange(users);
-    setSuccess(true);
-  };
+      passwordHash: sha256(pw)
+    }
+    users.push(newUser)
+    saveUsers(users)
+    onUsersChange(users)
+    setSuccess(true)
+  }
 
   if (success) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white p-6 rounded-lg w-full max-w-sm text-center">
-          <h2 className="text-2xl font-bold mb-4">Welcome, {name.trim()}!</h2>
+          <h2 className="text-2xl font-bold mb-4">
+            Welcome, {name.trim()}!
+          </h2>
           <p className="mb-6">You’ve successfully signed up.</p>
           <button
             onClick={onSwitch}
@@ -85,7 +114,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           </button>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -97,12 +126,13 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
         <label className="block mb-1 font-medium">Name</label>
         <input
           type="text"
+          value={name}
+          onChange={e => setName(e.target.value)}
+          onBlur={() => setTouched(t => ({...t, name: true}))}
+          placeholder="Jane Doe"
           className={`w-full mb-1 p-2 border rounded focus:ring ${
             nameErr ? 'border-red-500 focus:ring-red-200' : ''
           }`}
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Jane Doe"
         />
         {nameErr && <p className="text-red-600 text-sm mb-2">{nameErr}</p>}
 
@@ -110,12 +140,13 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
         <label className="block mb-1 font-medium">Email</label>
         <input
           type="email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          onBlur={() => setTouched(t => ({...t, email: true}))}
+          placeholder="you@example.com"
           className={`w-full mb-1 p-2 border rounded focus:ring ${
             emailErr ? 'border-red-500 focus:ring-red-200' : ''
           }`}
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          placeholder="you@example.com"
         />
         {emailErr && <p className="text-red-600 text-sm mb-2">{emailErr}</p>}
 
@@ -123,12 +154,13 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
         <label className="block mb-1 font-medium">Password</label>
         <input
           type="password"
+          value={pw}
+          onChange={e => setPw(e.target.value)}
+          onBlur={() => setTouched(t => ({...t, pw: true}))}
+          placeholder="••••••••"
           className={`w-full mb-1 p-2 border rounded focus:ring ${
             pwdErrs.length ? 'border-red-500 focus:ring-red-200' : ''
           }`}
-          value={pw}
-          onChange={e => setPw(e.target.value)}
-          placeholder="••••••••"
         />
         {pwdErrs.length > 0 && (
           <ul className="text-red-600 text-sm mb-2 list-disc list-inside">
@@ -136,18 +168,21 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           </ul>
         )}
 
-        {/* Confirm */}
+        {/* Confirm Password */}
         <label className="block mb-1 font-medium">Confirm Password</label>
         <input
           type="password"
+          value={confirm}
+          onChange={e => setConfirm(e.target.value)}
+          onBlur={() => setTouched(t => ({...t, confirm: true}))}
+          placeholder="••••••••"
           className={`w-full mb-4 p-2 border rounded focus:ring ${
             confirmErr ? 'border-red-500 focus:ring-red-200' : ''
           }`}
-          value={confirm}
-          onChange={e => setConfirm(e.target.value)}
-          placeholder="••••••••"
         />
-        {confirmErr && <p className="text-red-600 text-sm mb-3">{confirmErr}</p>}
+        {confirmErr && (
+          <p className="text-red-600 text-sm mb-3">{confirmErr}</p>
+        )}
 
         {/* Actions */}
         <div className="flex justify-between items-center">
@@ -178,5 +213,5 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
         </p>
       </div>
     </div>
-  );
+  )
 }
