@@ -1,53 +1,93 @@
-import React, { useState } from 'react';
-import { verifyLogin, saveCurrentUser } from '../utils/auth';
+// src/components/LoginModal.jsx
+import React, { useState } from 'react'
+import { verifyLogin, saveCurrentUser } from '../utils/auth'
 
 export default function LoginModal({ onClose, onLogin, onSwitch }) {
-  const [email, setEmail] = useState('');
-  const [pw, setPw]       = useState('');
-  const [err, setErr]     = useState('');
+  const [form, setForm] = useState({ email: '', password: '' })
+  const [error, setError] = useState('')
 
-  const doLogin = () => {
-    const user = verifyLogin(email, pw);
-    if (!user) return setErr('Invalid credentials');
-    saveCurrentUser(user);
-    onLogin(user);
-    onClose();
-  };
+  const handleChange = e => {
+    const { name, value } = e.target
+    setForm(f => ({ ...f, [name]: value }))
+    if (error) setError('')
+  }
+
+  const handleSubmit = e => {
+    e.preventDefault()
+
+    if (!form.email.trim()) {
+      return setError('Please enter your email')
+    }
+    if (!form.password) {
+      return setError('Please enter your password')
+    }
+
+    const user = verifyLogin(form.email.trim(), form.password)
+    if (!user) {
+      return setError('Invalid email or password')
+    }
+
+    // success!
+    saveCurrentUser(user)
+    onLogin(user)
+    onClose()
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg w-full max-w-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm"
+      >
         <h2 className="text-2xl font-semibold mb-4">Sign In</h2>
-        {err && <div className="text-red-600 mb-2">{err}</div>}
-        <label>Email</label>
+        {error && <div className="text-red-600 mb-4">{error}</div>}
+
+        <label className="block mb-1">Email</label>
         <input
+          name="email"
           type="email"
-          className="w-full mb-3 p-2 border rounded"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-        />
-        <label>Password</label>
-        <input
-          type="password"
           className="w-full mb-4 p-2 border rounded"
-          value={pw}
-          onChange={e => setPw(e.target.value)}
+          value={form.email}
+          onChange={handleChange}
+          autoFocus
         />
+
+        <label className="block mb-1">Password</label>
+        <input
+          name="password"
+          type="password"
+          className="w-full mb-6 p-2 border rounded"
+          value={form.password}
+          onChange={handleChange}
+        />
+
         <div className="flex justify-between items-center">
-          <button onClick={onClose} className="px-4 py-2 border rounded">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 border rounded"
+          >
             Cancel
           </button>
-          <button onClick={doLogin} className="px-4 py-2 bg-blue-600 text-white rounded">
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
             Sign In
           </button>
         </div>
-        <p className="mt-4 text-sm text-center">
+
+        <p className="mt-4 text-center text-sm">
           Don’t have an account?{' '}
-          <button onClick={onSwitch} className="text-blue-600 underline">
+          <button
+            type="button"
+            onClick={onSwitch}
+            className="underline text-blue-600"
+          >
             Sign up
           </button>
         </p>
-      </div>
+      </form>
     </div>
-  );
+  )
 }
