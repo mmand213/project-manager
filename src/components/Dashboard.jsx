@@ -1,33 +1,26 @@
-import React from 'react';
-import ProjectCard from './ProjectCard';
+import React from 'react'
+import ProjectCard from './ProjectCard'
 
 export default function Dashboard({ projects, filter, search, onEdit, onDelete }) {
-  const filtered = projects.filter((p) => {
-    if (filter === 'completed' && p.status !== 'completed') return false;
-    if (filter === 'in-progress' && p.status !== 'in-progress') return false;
-    if (filter === 'upcoming' && p.status !== 'upcoming') return false;
-    return p.title.toLowerCase().includes(search.toLowerCase());
-  });
+  // apply status + search filters
+  const filtered = projects
+    .filter(p => filter === 'all' || p.status === filter)
+    .filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
 
-  const stats = {
-    all: projects.length,
-    'in-progress': projects.filter((p) => p.status === 'in-progress').length,
-    completed: projects.filter((p) => p.status === 'completed').length,
-    upcoming: projects.filter((p) => p.status === 'upcoming').length,
-  };
+  if (filtered.length === 0) {
+    return <p className="text-gray-500">No projects found.</p>
+  }
 
   return (
-    <>
-      <div className="grid grid-cols-3 gap-4 mb-6">
-        <div className="p-4 bg-white rounded shadow">All Projects: {stats.all}</div>
-        <div className="p-4 bg-white rounded shadow">In Progress: {stats['in-progress']}</div>
-        <div className="p-4 bg-white rounded shadow">Completed: {stats.completed}</div>
-      </div>
-      <div className="grid md:grid-cols-3 gap-4">
-        {filtered.map((p) => (
-          <ProjectCard key={p.id} project={p} onEdit={onEdit} onDelete={onDelete} />
-        ))}
-      </div>
-    </>
-  );
+    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {filtered.map(p => (
+        <ProjectCard
+          key={p.id}
+          project={p}
+          onEdit={() => onEdit(p)}
+          onDelete={() => onDelete(p.id)}
+        />
+      ))}
+    </div>
+  )
 }
