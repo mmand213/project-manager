@@ -1,13 +1,14 @@
+// src/components/SignupModal.jsx
 import React, { useState } from 'react';
-import { saveUsers } from '../utils/users';
-import sha256 from 'js-sha256';
+import { loadUsers, saveUsers } from '../utils/users';
+import { sha256 } from 'js-sha256';
 
 export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
-  const [name, setName]     = useState('');
-  const [email, setEmail]   = useState('');
-  const [pw, setPw]         = useState('');
+  const [name, setName]       = useState('');
+  const [email, setEmail]     = useState('');
+  const [pw, setPw]           = useState('');
   const [confirm, setConfirm] = useState('');
-  const [err, setErr]       = useState('');
+  const [err, setErr]         = useState('');
 
   const doSignup = () => {
     if (!name || !email || !pw) {
@@ -16,8 +17,21 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
     if (pw !== confirm) {
       return setErr('Passwords do not match');
     }
-    const newUser = { id: Date.now(), name, email: email.toLowerCase(), passwordHash: sha256(pw) };
-    const updated = saveUsers(newUser);
+
+    // build the new user record
+    const newUser = {
+      id: Date.now(),
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      passwordHash: sha256(pw)
+    };
+
+    // load existing, append, save back
+    const users = loadUsers();
+    const updated = [...users, newUser];
+    saveUsers(updated);
+
+    // inform parent
     onUsersChange(updated);
     onClose();
   };
@@ -27,6 +41,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
       <div className="bg-white p-6 rounded-lg w-full max-w-sm">
         <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>
         {err && <div className="text-red-600 mb-2">{err}</div>}
+
         <label>Name</label>
         <input
           type="text"
@@ -34,6 +49,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           value={name}
           onChange={e => setName(e.target.value)}
         />
+
         <label>Email</label>
         <input
           type="email"
@@ -41,6 +57,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           value={email}
           onChange={e => setEmail(e.target.value)}
         />
+
         <label>Password</label>
         <input
           type="password"
@@ -48,6 +65,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           value={pw}
           onChange={e => setPw(e.target.value)}
         />
+
         <label>Confirm Password</label>
         <input
           type="password"
@@ -55,6 +73,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           value={confirm}
           onChange={e => setConfirm(e.target.value)}
         />
+
         <div className="flex justify-between items-center">
           <button onClick={onClose} className="px-4 py-2 border rounded">
             Cancel
@@ -63,6 +82,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
             Sign Up
           </button>
         </div>
+
         <p className="mt-4 text-sm text-center">
           Already have an account?{' '}
           <button onClick={onSwitch} className="text-blue-600 underline">
