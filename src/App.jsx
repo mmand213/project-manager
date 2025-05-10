@@ -6,6 +6,7 @@ import ProjectModal from './components/ProjectModal';
 import FilterPanel from './components/FilterPanel';
 import SearchBar from './components/SearchBar';
 import SignupModal from './components/SignupModal';
+import Settings from './components/Settings';
 import { loadProjects, saveProjects } from './utils/storage';
 import { loadUsers } from './utils/users';
 
@@ -16,7 +17,7 @@ export default function App() {
   const [modalProject, setModalProject] = useState(null);
   const [activeTab, setActiveTab]       = useState('dashboard');
 
-  // NEW: signup/users state
+  // signup/users state
   const [users, setUsers]     = useState([]);
   const [showSignup, setShowSignup] = useState(false);
 
@@ -49,7 +50,7 @@ export default function App() {
     closeModal();
   }
 
-  // Clear all (Settings tab)
+  // Clear all projects
   const clearAll = () => {
     if (window.confirm('Really clear all projects?')) {
       setProjects([]);
@@ -80,7 +81,7 @@ export default function App() {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`${
-                  activeTab===tab
+                  activeTab === tab
                     ? 'text-primary border-b-2 border-primary'
                     : 'text-gray-600 hover:text-primary'
                   } pb-1 transition`}
@@ -138,14 +139,14 @@ export default function App() {
 
         {activeTab === 'reports' && <ReportsView projects={projects} />}
 
-        {activeTab === 'settings' && <SettingsView onClearAll={clearAll} />}
+        {activeTab === 'settings' && <Settings onClearAll={clearAll} />}
 
         {modalProject && (
           <ProjectModal
             project={modalProject}
             onSave={saveProject}
             onCancel={closeModal}
-            users={users}               // pass dynamic users for Agent dropdown
+            users={users}
           />
         )}
       </main>
@@ -161,7 +162,7 @@ export default function App() {
   );
 }
 
-// Projects table now shows Agent
+// Projects table view
 function ProjectsView({ projects, onEdit, onDelete }) {
   return (
     <table className="min-w-full bg-white shadow-lg rounded overflow-hidden">
@@ -200,6 +201,7 @@ function ProjectsView({ projects, onEdit, onDelete }) {
   );
 }
 
+// Reports summary view
 function ReportsView({ projects }) {
   const total  = projects.length;
   const inProg = projects.filter(p => p.status === 'in-progress').length;
@@ -211,6 +213,7 @@ function ReportsView({ projects }) {
     { label: 'Completed',     value: done },
     { label: 'Upcoming',      value: upcom },
   ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       {stats.map(s => (
@@ -219,20 +222,6 @@ function ReportsView({ projects }) {
           <p className="mt-2 text-3xl font-bold text-primary">{s.value}</p>
         </div>
       ))}
-    </div>
-  );
-}
-
-function SettingsView({ onClearAll }) {
-  return (
-    <div className="bg-white p-8 rounded-lg shadow text-center">
-      <h2 className="text-2xl font-semibold mb-4">Settings</h2>
-      <button
-        onClick={onClearAll}
-        className="bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition"
-      >
-        Clear All Projects
-      </button>
     </div>
   );
 }
