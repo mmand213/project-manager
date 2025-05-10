@@ -2,13 +2,12 @@
 import React, { useState, useRef } from 'react';
 import Papa from 'papaparse';
 import { saveProjects } from '../utils/storage';
-import { saveUsers } from '../utils/users';
 
-export default function ReportsView({ projects, users }) {
+export default function ReportsView({ projects }) {
   const [format, setFormat] = useState('json');
   const fileInput = useRef(null);
 
-  // download helper
+  // small helper to download a blob
   const download = (filename, content, mime) => {
     const blob = new Blob([content], { type: mime });
     const url = URL.createObjectURL(blob);
@@ -20,63 +19,64 @@ export default function ReportsView({ projects, users }) {
     URL.revokeObjectURL(url);
   };
 
-  // export logic
+  // Export only the project fields (omit `id`)
   const handleExport = () => {
+    const stripped = projects.map(({ id, ...rest }) => rest);
     if (format === 'json') {
       download(
-        `pm-data-${Date.now()}.json`,
-        JSON.stringify({ projects, users }, null, 2),
+        `projects-${Date.now()}.json`,
+        JSON.stringify(stripped, null, 2),
         'application/json'
       );
     } else {
-      const projCsv = Papa.unparse(projects);
-      const userCsv = Papa.unparse(users);
+      const csv = Papa.unparse(stripped);
       download(
-        `pm-data-${Date.now()}.csv`,
-        `--- PROJECTS ---\n${projCsv}\n\n--- USERS ---\n${userCsv}`,
+        `projects-${Date.now()}.csv`,
+        csv,
         'text/csv'
       );
     }
   };
 
-  // import logic
-  const handleImport = e => {
+  // Import just projects; save to localStorage
+  const handleImport = (e) => {
     const file = e.target.files[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = ({ target }) => {
       try {
+        let imported;
         if (file.name.endsWith('.json')) {
-          const { projects: pj, users: us } = JSON.parse(target.result);
-          saveProjects(pj);
-          saveUsers(us);
+          imported = JSON.parse(target.result);
         } else {
-          const text = target.result;
-          const [,projBlock,userBlock] = text
-            .split(/--- PROJECTS ---|--- USERS ---/)
-            .map(s => s.trim());
-          const pj = Papa.parse(projBlock, { header: true }).data;
-          const us = Papa.parse(userBlock,  { header: true }).data;
-          saveProjects(pj);
-          saveUsers(us);
+          imported = Papa.parse(target.result, { header: true }).data;
         }
+        // give them fresh numeric IDs
+        const withIds = imported.map((p) => ({ ...p, id: Date.now() + Math.random() }));
+        saveProjects(withIds);
         window.location.reload();
       } catch (err) {
-        alert('Import failed: ' + err.message);
+        alert('Failed to import projects: ' + err.message);
       }
     };
     reader.readAsText(file);
   };
 
-  // stats
+  // Stats for the dashboard
   const total  = projects.length;
   const inProg = projects.filter(p => p.status === 'in-progress').length;
   const done   = projects.filter(p => p.status === 'completed').length;
   const upcom  = projects.filter(p => p.status === 'upcoming').length;
+  const stats  = [
+    { label: 'Total Projects', value: total },
+    { label: 'In Progress',   value: inProg },
+    { label: 'Completed',     value: done },
+    { label: 'Upcoming',      value: upcom },
+  ];
 
   return (
     <>
-      {/* Export/Import Controls */}
+      {/* Export / Import Controls */}
       <div className="flex items-center space-x-3 mb-6">
         <select
           value={format}
@@ -90,7 +90,7 @@ export default function ReportsView({ projects, users }) {
           onClick={handleExport}
           className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
-          Export
+          Export Projects
         </button>
         <input
           ref={fileInput}
@@ -103,18 +103,13 @@ export default function ReportsView({ projects, users }) {
           onClick={() => fileInput.current.click()}
           className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
-          Import
+          Import Projects
         </button>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[ 
-          { label:'Total Projects', value: total },
-          { label:'In Progress',   value: inProg },
-          { label:'Completed',     value: done },
-          { label:'Upcoming',      value: upcom }
-        ].map(s => (
+        {stats.map(s => (
           <div key={s.label} className="bg-white p-6 rounded-lg shadow">
             <h3 className="text-lg font-medium text-gray-700">{s.label}</h3>
             <p className="mt-2 text-3xl font-bold text-primary">{s.value}</p>
