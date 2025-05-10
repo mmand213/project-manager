@@ -5,12 +5,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- ensure all URLs use the same base -->
+  <!-- force every asset to resolve under /project-manager/ -->
   <base href="/project-manager/" />
 
   <title>Project Manager</title>
-
-  <!-- your fonts, etc. -->
+  <!-- your Google Fonts, etc… -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link
@@ -21,7 +20,11 @@
 <body class="bg-gray-100 font-poppins antialiased">
   <div id="root"></div>
 
-  <!-- relative path, no leading slash -->
-  <script type="module" src="src/main.jsx"></script>
+  <!--
+    IMPORTANT: use an *absolute* URL that includes your base
+    so Vite can find it at build time and then rewrite it to
+    the hashed bundle.
+  -->
+  <script type="module" src="/project-manager/src/main.jsx"></script>
 </body>
 </html>
