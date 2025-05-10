@@ -1,6 +1,6 @@
 // src/components/LoginModal.jsx
 import React, { useState } from 'react';
-import { verifyLogin, saveCurrentUser } from '../utils/auth.js';
+import { verifyLogin, saveCurrentUser } from './utils/auth';
 
 export default function LoginModal({ onClose, onLogin }) {
   const [email, setEmail] = useState('');
