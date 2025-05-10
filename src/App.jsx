@@ -8,7 +8,7 @@ import ProjectModal          from './components/ProjectModal';
 import FilterPanel           from './components/FilterPanel';
 import SearchBar             from './components/SearchBar';
 import SignupModal           from './components/SignupModal';
-import LoginModal            from './components/LoginModal';
+import LoginModal from './LoginModal';    // <-- point at the src/ root';
 import Settings              from './components/Settings';
 import { loadProjects, saveProjects } from './utils/storage';
 import { loadUsers }               from './utils/users';
