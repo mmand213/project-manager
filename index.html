@@ -1,26 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>Project Manager</title>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ensure all relative URLs pick up your base -->
-   
+  <!-- ensure all URLs pick up that same base -->
+  <base href="/project-manager/" />
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
-      rel="stylesheet"
-    />
-    <script type="module" crossorigin src="/project-manager/assets/index-3ce3abc2.js"></script>
-    <link rel="stylesheet" href="/project-manager/assets/index-0e4acdba.css">
-  </head>
-  <body class="bg-gray-100 font-poppins antialiased">
-    <div id="root"></div>
-    <!-- Vite will rewrite /project-manager/ to /project-manager/ in production -->
-    
-  </body>
+  <title>Project Manager</title>
+
+  <!-- your Google Fonts, etc. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+  <script type="module" crossorigin src="/project-manager/assets/index-3ce3abc2.js"></script>
+  <link rel="stylesheet" href="/project-manager/assets/index-0e4acdba.css">
+</head>
+<body class="bg-gray-100 font-poppins antialiased">
+  <div id="root"></div>
+
+  <!--
+    Use a **relative** path here so Rollup can find it at build time:
+    Vite will bundle src/main.jsx, hash it, and inject the correct
+    <script src="…index-XYZ.js"> for you.
+  -->
+  
+</body>
 </html>
