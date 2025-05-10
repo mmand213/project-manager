@@ -20,7 +20,6 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
   const [confirm, setConfirm] = useState('')
   const [success, setSuccess] = useState(false)
 
-  // track which fields have been visited
   const [touched, setTouched] = useState({
     name: false,
     email: false,
@@ -28,13 +27,12 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
     confirm: false
   })
 
-  // validation messages
   const [nameErr,    setNameErr]    = useState('')
   const [emailErr,   setEmailErr]   = useState('')
-  const [pwdErrs,    setPwdErrs]    = useState<string[]>([])
+  const [pwdErrs,    setPwdErrs]    = useState([])     // ← no generics here
   const [confirmErr, setConfirmErr] = useState('')
 
-  // validate name
+  // name validation
   useEffect(() => {
     if (!name && touched.name) {
       setNameErr('Name is required')
@@ -45,7 +43,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
     }
   }, [name, touched.name])
 
-  // validate email
+  // email validation
   useEffect(() => {
     if (!email && touched.email) {
       setEmailErr('Email is required')
@@ -56,7 +54,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
     }
   }, [email, touched.email])
 
-  // validate password rules
+  // password rules
   useEffect(() => {
     if (touched.pw) {
       const errs = PWD_RULES
@@ -68,7 +66,7 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
     }
   }, [pw, touched.pw])
 
-  // validate confirm
+  // confirm password
   useEffect(() => {
     if (!confirm && touched.confirm) {
       setConfirmErr('Please confirm password')
@@ -80,8 +78,14 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
   }, [confirm, pw, touched.confirm])
 
   const allValid =
-    !nameErr && !emailErr && pwdErrs.length === 0 && !confirmErr &&
-    name && email && pw && confirm
+    !nameErr &&
+    !emailErr &&
+    pwdErrs.length === 0 &&
+    !confirmErr &&
+    name &&
+    email &&
+    pw &&
+    confirm
 
   const doSignup = () => {
     if (!allValid) return
@@ -184,7 +188,6 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           <p className="text-red-600 text-sm mb-3">{confirmErr}</p>
         )}
 
-        {/* Actions */}
         <div className="flex justify-between items-center">
           <button
             onClick={onClose}
