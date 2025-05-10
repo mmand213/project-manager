@@ -1,11 +1,10 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- force every asset to resolve under /project-manager/ -->
+  <!-- Make every built asset resolve under your GH-Pages path -->
   <base href="/project-manager/" />
 
   <title>Project Manager</title>
@@ -20,11 +19,7 @@
 <body class="bg-gray-100 font-poppins antialiased">
   <div id="root"></div>
 
-  <!--
-    IMPORTANT: use an *absolute* URL that includes your base
-    so Vite can find it at build time and then rewrite it to
-    the hashed bundle.
-  -->
-  <script type="module" src="/project-manager/src/main.jsx"></script>
+  <!-- point Vite at your real entry. NO repo‐name here. -->
+  <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>
