@@ -1,5 +1,5 @@
 // src/components/SignupModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { loadUsers, saveUsers } from '../utils/users';
 import { sha256 } from 'js-sha256';
 
@@ -18,61 +18,56 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
   const [email,   setEmail]   = useState('');
   const [pw,      setPw]      = useState('');
   const [confirm, setConfirm] = useState('');
-  const [errs,    setErrs]    = useState([]);
   const [success, setSuccess] = useState(false);
 
+  const [nameErr,    setNameErr]    = useState('');
+  const [emailErr,   setEmailErr]   = useState('');
+  const [pwdErrs,    setPwdErrs]    = useState([]);
+  const [confirmErr, setConfirmErr] = useState('');
+
+  // real-time validation
+  useEffect(() => {
+    const n = name.trim();
+    if (!n)               setNameErr('Name is required');
+    else if (!NAME_REGEX.test(n)) setNameErr('Only letters & spaces allowed');
+    else                  setNameErr('');
+  }, [name]);
+
+  useEffect(() => {
+    const e = email.trim().toLowerCase();
+    if (!e)               setEmailErr('Email is required');
+    else if (!EMAIL_REGEX.test(e)) setEmailErr('Invalid email address');
+    else                  setEmailErr('');
+  }, [email]);
+
+  useEffect(() => {
+    const errs = PWD_RULES
+      .filter(r => !r.test.test(pw))
+      .map(r => r.message);
+    setPwdErrs(errs);
+  }, [pw]);
+
+  useEffect(() => {
+    if (!confirm)                    setConfirmErr('Please confirm password');
+    else if (pw && confirm !== pw)   setConfirmErr('Passwords do not match');
+    else                             setConfirmErr('');
+  }, [confirm, pw]);
+
+  const allValid =
+    !nameErr && !emailErr && pwdErrs.length === 0 && !confirmErr;
+
   const doSignup = () => {
-    const e = [];
-
-    // Name
-    if (!name.trim()) {
-      e.push('Name is required');
-    } else if (!NAME_REGEX.test(name.trim())) {
-      e.push('Name can only contain letters and spaces');
-    }
-
-    // Email
-    if (!email.trim()) {
-      e.push('Email is required');
-    } else if (!EMAIL_REGEX.test(email.toLowerCase())) {
-      e.push('Enter a valid email address');
-    }
-
-    // Password
-    if (!pw) {
-      e.push('Password is required');
-    } else {
-      PWD_RULES.forEach(rule => {
-        if (!rule.test.test(pw)) {
-          e.push(`Password needs: ${rule.message}`);
-        }
-      });
-    }
-
-    // Confirm
-    if (pw && confirm && pw !== confirm) {
-      e.push('Passwords do not match');
-    }
-
-    if (e.length) {
-      setErrs(e);
-      return;
-    }
-
-    // all good → create user
+    if (!allValid) return;
     const newUser = {
       id:           Date.now(),
       name:         name.trim(),
-      email:        email.toLowerCase().trim(),
+      email:        email.trim().toLowerCase(),
       passwordHash: sha256(pw),
     };
-
-    const users  = loadUsers();
-    const updated = [...users, newUser];
-    saveUsers(updated);
-    onUsersChange(updated);
-
-    // show success screen
+    const users = loadUsers();
+    users.push(newUser);
+    saveUsers(users);
+    onUsersChange(users);
     setSuccess(true);
   };
 
@@ -98,50 +93,63 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
       <div className="bg-white p-6 rounded-lg w-full max-w-sm">
         <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>
 
-        {errs.length > 0 && (
-          <ul className="text-red-600 mb-4 list-disc list-inside">
-            {errs.map((msg, i) => (
-              <li key={i}>{msg}</li>
-            ))}
-          </ul>
-        )}
-
+        {/* Name */}
         <label className="block mb-1 font-medium">Name</label>
         <input
           type="text"
-          className="w-full mb-3 p-2 border rounded"
+          className={`w-full mb-1 p-2 border rounded focus:ring ${
+            nameErr ? 'border-red-500 focus:ring-red-200' : ''
+          }`}
           value={name}
           onChange={e => setName(e.target.value)}
           placeholder="Jane Doe"
         />
+        {nameErr && <p className="text-red-600 text-sm mb-2">{nameErr}</p>}
 
+        {/* Email */}
         <label className="block mb-1 font-medium">Email</label>
         <input
           type="email"
-          className="w-full mb-3 p-2 border rounded"
+          className={`w-full mb-1 p-2 border rounded focus:ring ${
+            emailErr ? 'border-red-500 focus:ring-red-200' : ''
+          }`}
           value={email}
           onChange={e => setEmail(e.target.value)}
           placeholder="you@example.com"
         />
+        {emailErr && <p className="text-red-600 text-sm mb-2">{emailErr}</p>}
 
+        {/* Password */}
         <label className="block mb-1 font-medium">Password</label>
         <input
           type="password"
-          className="w-full mb-3 p-2 border rounded"
+          className={`w-full mb-1 p-2 border rounded focus:ring ${
+            pwdErrs.length ? 'border-red-500 focus:ring-red-200' : ''
+          }`}
           value={pw}
           onChange={e => setPw(e.target.value)}
           placeholder="••••••••"
         />
+        {pwdErrs.length > 0 && (
+          <ul className="text-red-600 text-sm mb-2 list-disc list-inside">
+            {pwdErrs.map((msg,i) => <li key={i}>{msg}</li>)}
+          </ul>
+        )}
 
+        {/* Confirm */}
         <label className="block mb-1 font-medium">Confirm Password</label>
         <input
           type="password"
-          className="w-full mb-4 p-2 border rounded"
+          className={`w-full mb-4 p-2 border rounded focus:ring ${
+            confirmErr ? 'border-red-500 focus:ring-red-200' : ''
+          }`}
           value={confirm}
           onChange={e => setConfirm(e.target.value)}
           placeholder="••••••••"
         />
+        {confirmErr && <p className="text-red-600 text-sm mb-3">{confirmErr}</p>}
 
+        {/* Actions */}
         <div className="flex justify-between items-center">
           <button
             onClick={onClose}
@@ -151,7 +159,12 @@ export default function SignupModal({ onClose, onUsersChange, onSwitch }) {
           </button>
           <button
             onClick={doSignup}
-            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            disabled={!allValid}
+            className={`px-4 py-2 rounded transition ${
+              allValid
+                ? 'bg-green-600 text-white hover:bg-green-700'
+                : 'bg-gray-300 text-gray-600 cursor-not-allowed'
+            }`}
           >
             Sign Up
           </button>
