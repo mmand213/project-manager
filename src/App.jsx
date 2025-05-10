@@ -5,17 +5,27 @@ import Dashboard from './components/Dashboard';
 import ProjectModal from './components/ProjectModal';
 import FilterPanel from './components/FilterPanel';
 import SearchBar from './components/SearchBar';
+import SignupModal from './components/SignupModal';
 import { loadProjects, saveProjects } from './utils/storage';
+import { loadUsers } from './utils/users';
 
 export default function App() {
   const [projects, setProjects] = useState([]);
-  const [filter, setFilter]   = useState('all');
-  const [search, setSearch]   = useState('');
+  const [filter, setFilter]     = useState('all');
+  const [search, setSearch]     = useState('');
   const [modalProject, setModalProject] = useState(null);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab]       = useState('dashboard');
 
+  // NEW: signup/users state
+  const [users, setUsers]     = useState([]);
+  const [showSignup, setShowSignup] = useState(false);
+
+  // load projects
   useEffect(() => { setProjects(loadProjects()); }, []);
   useEffect(() => { saveProjects(projects); }, [projects]);
+
+  // load users
+  useEffect(() => { setUsers(loadUsers()); }, []);
 
   const openModal = proj =>
     setModalProject(
@@ -54,12 +64,16 @@ export default function App() {
       {/* NAV */}
       <header className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
+          
+          {/* Logo */}
           <div className="flex items-center">
             <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-primary to-primaryLight rounded-full shadow-lg">
               <span className="text-white text-3xl font-extrabold">PM</span>
             </div>
             <span className="ml-4 text-2xl font-medium text-gray-800">Project Manager</span>
           </div>
+
+          {/* Tabs */}
           <nav className="hidden md:flex space-x-8 text-lg">
             {['dashboard','projects','reports','settings'].map(tab => (
               <button
@@ -75,12 +89,24 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <button
-            onClick={() => { openModal(); setActiveTab('dashboard'); }}
-            className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primaryLight transition"
-          >
-            New Project
-          </button>
+
+          {/* Actions */}
+          <div className="flex items-center space-x-4">
+            {/* Sign Up */}
+            <button
+              onClick={() => setShowSignup(true)}
+              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+            >
+              Sign Up
+            </button>
+            {/* New Project */}
+            <button
+              onClick={() => { openModal(); setActiveTab('dashboard'); }}
+              className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primaryLight transition"
+            >
+              New Project
+            </button>
+          </div>
         </div>
       </header>
 
@@ -119,9 +145,18 @@ export default function App() {
             project={modalProject}
             onSave={saveProject}
             onCancel={closeModal}
+            users={users}               // pass dynamic users for Agent dropdown
           />
         )}
       </main>
+
+      {/* Signup Modal */}
+      {showSignup && (
+        <SignupModal
+          onClose={() => setShowSignup(false)}
+          onUsersChange={setUsers}
+        />
+      )}
     </>
   );
 }
@@ -147,10 +182,16 @@ function ProjectsView({ projects, onEdit, onDelete }) {
             <td className="px-4 py-2">{p.agent || '—'}</td>
             <td className="px-4 py-2">{p.status}</td>
             <td className="px-4 py-2">{p.deadline || '—'}</td>
-            <td className="px-4 py-2">{`${p.tasks.filter(t=>t.completed).length}/${p.tasks.length}`}</td>
+            <td className="px-4 py-2">
+              {`${p.tasks.filter(t => t.completed).length}/${p.tasks.length}`}
+            </td>
             <td className="px-4 py-2 space-x-2">
-              <button onClick={() => onEdit(p)} className="text-blue-600 hover:underline">Edit</button>
-              <button onClick={() => onDelete(p.id)} className="text-red-600 hover:underline">Delete</button>
+              <button onClick={() => onEdit(p)} className="text-blue-600 hover:underline">
+                Edit
+              </button>
+              <button onClick={() => onDelete(p.id)} className="text-red-600 hover:underline">
+                Delete
+              </button>
             </td>
           </tr>
         ))}
@@ -160,15 +201,15 @@ function ProjectsView({ projects, onEdit, onDelete }) {
 }
 
 function ReportsView({ projects }) {
-  const total = projects.length;
-  const inProg = projects.filter(p => p.status==='in-progress').length;
-  const done   = projects.filter(p => p.status==='completed').length;
-  const upcom  = projects.filter(p => p.status==='upcoming').length;
-  const stats = [
-    { label:'Total Projects', value: total },
-    { label:'In Progress',   value: inProg },
-    { label:'Completed',     value: done },
-    { label:'Upcoming',      value: upcom },
+  const total  = projects.length;
+  const inProg = projects.filter(p => p.status === 'in-progress').length;
+  const done   = projects.filter(p => p.status === 'completed').length;
+  const upcom  = projects.filter(p => p.status === 'upcoming').length;
+  const stats  = [
+    { label: 'Total Projects', value: total },
+    { label: 'In Progress',   value: inProg },
+    { label: 'Completed',     value: done },
+    { label: 'Upcoming',      value: upcom },
   ];
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
