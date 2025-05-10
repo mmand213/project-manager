@@ -1,11 +1,10 @@
-// src/components/LoginModal.jsx
 import React, { useState } from 'react';
-import { verifyLogin, saveCurrentUser } from './utils/auth';
+import { verifyLogin, saveCurrentUser } from '../utils/auth';
 
-export default function LoginModal({ onClose, onLogin }) {
+export default function LoginModal({ onClose, onLogin, onSwitch }) {
   const [email, setEmail] = useState('');
-  const [pw,    setPw]    = useState('');
-  const [err,  setErr]    = useState('');
+  const [pw, setPw]       = useState('');
+  const [err, setErr]     = useState('');
 
   const doLogin = () => {
     const user = verifyLogin(email, pw);
@@ -34,12 +33,20 @@ export default function LoginModal({ onClose, onLogin }) {
           value={pw}
           onChange={e => setPw(e.target.value)}
         />
-        <div className="flex justify-end space-x-2">
-          <button onClick={onClose} className="px-4 py-2 border rounded">Cancel</button>
+        <div className="flex justify-between items-center">
+          <button onClick={onClose} className="px-4 py-2 border rounded">
+            Cancel
+          </button>
           <button onClick={doLogin} className="px-4 py-2 bg-blue-600 text-white rounded">
             Sign In
           </button>
         </div>
+        <p className="mt-4 text-sm text-center">
+          Don’t have an account?{' '}
+          <button onClick={onSwitch} className="text-blue-600 underline">
+            Sign up
+          </button>
+        </p>
       </div>
     </div>
   );
