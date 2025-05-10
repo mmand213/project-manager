@@ -2,7 +2,7 @@
   "name": "it-infra-pm",
   "version": "1.0.0",
   "private": true,
-  "homepage": "https://<YOUR_GH_USERNAME>.github.io/it-infra-pm",
+  "homepage": "https://<YOUR_GH_USERNAME>.github.io/project-manager",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
