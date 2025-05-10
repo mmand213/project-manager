@@ -2,11 +2,19 @@
 import React, { useState } from 'react';
 import TaskItem from './TaskItem';
 
+const USER_OPTIONS = [
+  'Alice Johnson',
+  'Bob Smith',
+  'Carol Diaz',
+  'Dave Lee',
+];
+
 export default function ProjectModal({ project, onSave, onCancel }) {
   const [title, setTitle] = useState(project.title);
   const [deadline, setDeadline] = useState(project.deadline);
   const [status, setStatus] = useState(project.status);
   const [tasks, setTasks] = useState(project.tasks);
+  const [agent, setAgent] = useState(project.agent || '');
   const [newTaskText, setNewTaskText] = useState('');
 
   const addTask = () => {
@@ -20,8 +28,10 @@ export default function ProjectModal({ project, onSave, onCancel }) {
     setTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t));
   const deleteTask = id =>
     setTasks(tasks.filter(t => t.id !== id));
+
   const handleSubmit = () =>
-    onSave({ ...project, title, deadline, status, tasks });
+    // include agent in the saved project object
+    onSave({ ...project, title, deadline, status, tasks, agent });
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -36,6 +46,21 @@ export default function ProjectModal({ project, onSave, onCancel }) {
             value={title}
             onChange={e => setTitle(e.target.value)}
           />
+        </div>
+
+        {/* Agent */}
+        <div className="mb-4">
+          <label className="block mb-1 font-medium">Agent</label>
+          <select
+            className="w-full p-2 border rounded"
+            value={agent}
+            onChange={e => setAgent(e.target.value)}
+          >
+            <option value="">— Unassigned —</option>
+            {USER_OPTIONS.map(u => (
+              <option key={u} value={u}>{u}</option>
+            ))}
+          </select>
         </div>
 
         {/* Deadline */}
