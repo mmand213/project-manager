@@ -1,53 +1,82 @@
 // src/components/SignupModal.jsx
 import React, { useState } from 'react';
-import { loadUsers, saveUsers } from '../utils/users';
-import sha256 from 'js-sha256';  // you can npm install js-sha256
+import { loadUsers, saveUsers, makeUser, saveCurrentUser } from '../utils/auth';
 
-export default function SignupModal({ onClose, onUsersChange }) {
-  const [name, setName]           = useState('');
-  const [email, setEmail]         = useState('');
-  const [password, setPassword]   = useState('');
-  const [confirm, setConfirm]     = useState('');
-  const [error, setError]         = useState('');
+export default function SignupModal({ onClose, onLogin }) {
+  const [name,    setName]    = useState('');
+  const [email,   setEmail]   = useState('');
+  const [pw,      setPw]      = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [error,   setError]   = useState('');
 
   const handleSignup = () => {
-    if (!name || !email || !password) {
-      setError('All fields are required');
-      return;
-    }
-    if (password !== confirm) {
-      setError('Passwords do not match');
-      return;
-    }
+    if (!name || !email || !pw) return setError('All fields are required');
+    if (pw !== confirm)        return setError('Passwords must match');
+
     const users = loadUsers();
-    users.push({
-      id: Date.now(),
-      name,
-      email,
-      passwordHash: sha256(password),
-    });
+    if (users.some(u => u.email === email)) {
+      return setError('That email is already in use');
+    }
+
+    const newUser = makeUser({ name, email, password: pw });
+    users.push(newUser);
     saveUsers(users);
-    onUsersChange(users);
+
+    // auto-login new user
+    saveCurrentUser(newUser);
+    onLogin(newUser);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-lg w-full max-w-sm">
-        <h2 className="text-xl mb-4">Sign Up</h2>
-        {error && <p className="text-red-600 mb-2">{error}</p>}
-        <label className="block mb-1">Name</label>
-        <input className="mb-3 w-full p-2 border rounded" value={name} onChange={e => setName(e.target.value)} />
-        <label className="block mb-1">Email</label>
-        <input type="email" className="mb-3 w-full p-2 border rounded" value={email} onChange={e => setEmail(e.target.value)} />
-        <label className="block mb-1">Password</label>
-        <input type="password" className="mb-3 w-full p-2 border rounded" value={password} onChange={e => setPassword(e.target.value)} />
-        <label className="block mb-1">Confirm Password</label>
-        <input type="password" className="mb-3 w-full p-2 border rounded" value={confirm} onChange={e => setConfirm(e.target.value)} />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg w-full max-w-md">
+        <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>
+        {error && <div className="text-red-600 mb-2">{error}</div>}
+        <label className="block mb-1 font-medium">Name</label>
+        <input
+          className="w-full mb-3 p-2 border rounded"
+          value={name}
+          onChange={e => setName(e.target.value)}
+        />
+
+        <label className="block mb-1 font-medium">Email</label>
+        <input
+          type="email"
+          className="w-full mb-3 p-2 border rounded"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+        />
+
+        <label className="block mb-1 font-medium">Password</label>
+        <input
+          type="password"
+          className="w-full mb-3 p-2 border rounded"
+          value={pw}
+          onChange={e => setPw(e.target.value)}
+        />
+
+        <label className="block mb-1 font-medium">Confirm Password</label>
+        <input
+          type="password"
+          className="w-full mb-4 p-2 border rounded"
+          value={confirm}
+          onChange={e => setConfirm(e.target.value)}
+        />
 
         <div className="flex justify-end space-x-2">
-          <button onClick={onClose} className="px-4 py-2 border rounded">Cancel</button>
-          <button onClick={handleSignup} className="px-4 py-2 bg-blue-600 text-white rounded">Sign Up</button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border rounded hover:bg-gray-100 transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSignup}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+          >
+            Sign Up
+          </button>
         </div>
       </div>
     </div>
