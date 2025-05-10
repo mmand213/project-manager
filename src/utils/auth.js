@@ -1,25 +1,26 @@
 // src/utils/auth.js
 import { loadUsers } from './users'
-import sha256 from 'js-sha256'         // <— correct default import
+import { sha256 }  from 'js-sha256'    // ← named import!
 
 const CURRENT_KEY = 'pm-app-current-user'
 
 /** Given email + plain-text password, return the user object
- *  if they match, or null if they don't.
+ *  (with id, name, email, passwordHash) if they match,
+ *  or `null` otherwise.
  */
 export function verifyLogin(email, password) {
   const users = loadUsers()
   const user  = users.find(u => u.email.toLowerCase() === email.toLowerCase())
   if (!user) return null
 
-  // now hash the incoming password and compare
+  // hash the incoming password & compare
   if (user.passwordHash === sha256(password)) {
     return user
   }
   return null
 }
 
-/** Persist “current user” to localStorage */
+/** Persist the “current user” to localStorage */
 export function saveCurrentUser(user) {
   if (user) {
     localStorage.setItem(CURRENT_KEY, JSON.stringify(user))
@@ -28,7 +29,7 @@ export function saveCurrentUser(user) {
   }
 }
 
-/** Retrieve the current user (or null if none) */
+/** Load the current user (or null) */
 export function loadCurrentUser() {
   try {
     return JSON.parse(localStorage.getItem(CURRENT_KEY))
