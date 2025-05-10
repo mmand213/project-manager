@@ -2,8 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Project Manager</title>
+
+    <!-- ensure all relative URLs pick up your base -->
+    <base href="%BASE_URL%" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,7 +18,7 @@
   </head>
   <body class="bg-gray-100 font-poppins antialiased">
     <div id="root"></div>
-    <!-- Vite will transform this in production to your hashed .js bundle -->
-    <script type="module" src="/src/main.jsx"></script>
+    <!-- Vite will rewrite %BASE_URL% to /project-manager/ in production -->
+    <script type="module" src="%BASE_URL%src/main.jsx"></script>
   </body>
 </html>
