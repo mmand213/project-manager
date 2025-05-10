@@ -2,21 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Project Manager</title>
 
-  <!-- this base is necessary so that in production all URLs resolve under /project-manager/ -->
+  <!-- THIS base makes all your asset URLs relative to /project-manager/ on GH Pages -->
   <base href="/project-manager/" />
 
-  <!-- your fonts, meta, etc. -->
+  <!-- your fonts, favicons, etc. -->
 </head>
-<body>
+<body class="bg-gray-100 font-poppins antialiased">
   <div id="root"></div>
 
-  <!-- Vite will replace %BASE_URL% with "/" in dev and "/project-manager/" in prod -->
+  <!-- VITE replaces %BASE_URL% with "/" in dev and "/project-manager/" in prod -->
   <script type="module" src="%BASE_URL%src/main.jsx"></script>
 </body>
 </html>
