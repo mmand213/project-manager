@@ -1,60 +1,110 @@
 // src/App.jsx
 import React, { useState, useEffect } from 'react';
 import NinjaStarsBackground from './components/NinjaStarsBackground';
-import Dashboard from './components/Dashboard';
-import ProjectsView from './components/ProjectsView';
-import ReportsView from './components/ReportsView';
-import ProjectModal from './components/ProjectModal';
-import FilterPanel from './components/FilterPanel';
-import SearchBar from './components/SearchBar';
-import SignupModal from './components/SignupModal';
-import Settings from './components/Settings';
+import Dashboard             from './components/Dashboard';
+import ProjectsView          from './components/ProjectsView';
+import ReportsView           from './components/ReportsView';
+import ProjectModal          from './components/ProjectModal';
+import FilterPanel           from './components/FilterPanel';
+import SearchBar             from './components/SearchBar';
+import SignupModal           from './components/SignupModal';
+import LoginModal            from './components/LoginModal';
+import Settings              from './components/Settings';
 import { loadProjects, saveProjects } from './utils/storage';
-import { loadUsers } from './utils/users';
+import { loadUsers }               from './utils/users';
+import { loadCurrentUser, saveCurrentUser } from './utils/auth';
 
 export default function App() {
-  const [projects, setProjects]         = useState([]);
-  const [filter, setFilter]             = useState('all');
-  const [search, setSearch]             = useState('');
+  // Projects & Filters
+  const [projects,   setProjects]   = useState([]);
+  const [filter,     setFilter]     = useState('all');
+  const [search,     setSearch]     = useState('');
   const [modalProject, setModalProject] = useState(null);
-  const [activeTab, setActiveTab]       = useState('dashboard');
 
-  const [users, setUsers]               = useState([]);
-  const [showSignup, setShowSignup]     = useState(false);
+  // Auth state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authMode,    setAuthMode]    = useState<'login'|'signup'>('login');
 
-  // load projects & persist on change
+  // “Router” tab
+  const [activeTab,   setActiveTab]   = useState('dashboard');
+
+  // Load projects from localStorage
   useEffect(() => { setProjects(loadProjects()); }, []);
-  useEffect(() => { saveProjects(projects); }, [projects]);
+  useEffect(() => { saveProjects(projects);  }, [projects]);
 
-  // load users once
-  useEffect(() => { setUsers(loadUsers()); }, []);
+  // Load currentUser
+  useEffect(() => {
+    const user = loadCurrentUser();
+    if (user) setCurrentUser(user);
+  }, []);
 
-  const openModal = proj => setModalProject(
-    proj || { id: Date.now(), title: '', agent: '', tasks: [], status: 'upcoming', deadline: '' }
-  );
+  // Handlers for project modal
+  const openModal = proj =>
+    setModalProject(
+      proj || { id: Date.now(), title:'', agent:'', tasks:[], status:'upcoming', deadline:'' }
+    );
   const closeModal = () => setModalProject(null);
 
   function saveProject(proj) {
     setProjects(prev => {
-      const exists = prev.find(p => p.id === proj.id);
-      if (exists) return prev.map(p => p.id === proj.id ? proj : p);
+      const exists = prev.find(p => p.id===proj.id);
+      if (exists) return prev.map(p => p.id===proj.id ? proj : p);
       return [...prev, proj];
     });
     closeModal();
   }
 
-  const clearAll = () => {
-    if (window.confirm('Really clear all projects?')) {
-      setProjects([]);
-      saveProjects([]);
-    }
+  // Log out
+  const doLogout = () => {
+    saveCurrentUser(null);
+    setCurrentUser(null);
+    setAuthMode('login');
   };
 
+  // If not signed in yet, show the auth screens:
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        {authMode === 'login' ? (
+          <LoginModal
+            onClose={() => {}}
+            onLogin={user => {
+              saveCurrentUser(user);
+              setCurrentUser(user);
+            }}
+          />
+        ) : (
+          <SignupModal
+            onClose={()   => setAuthMode('login')}
+            onUsersChange={() => {}}
+          />
+        )}
+        <div className="absolute bottom-8 text-center w-full">
+          {authMode === 'login' ? (
+            <button
+              onClick={() => setAuthMode('signup')}
+              className="underline text-blue-600"
+            >
+              Don’t have an account? Sign Up
+            </button>
+          ) : (
+            <button
+              onClick={() => setAuthMode('login')}
+              className="underline text-blue-600"
+            >
+              Already have an account? Log In
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Once signed in, render the real app:
   return (
     <>
       <NinjaStarsBackground />
 
-      {/* NAV */}
       <header className="bg-white shadow-md">
         <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
           {/* Logo */}
@@ -62,7 +112,9 @@ export default function App() {
             <div className="w-16 h-16 flex items-center justify-center bg-gradient-to-br from-primary to-primaryLight rounded-full shadow-lg">
               <span className="text-white text-3xl font-extrabold">PM</span>
             </div>
-            <span className="ml-4 text-2xl font-medium text-gray-800">Project Manager</span>
+            <span className="ml-4 text-2xl font-medium text-gray-800">
+              Project Manager
+            </span>
           </div>
 
           {/* Tabs */}
@@ -75,20 +127,20 @@ export default function App() {
                   activeTab === tab
                     ? 'text-primary border-b-2 border-primary'
                     : 'text-gray-600 hover:text-primary'
-                  } pb-1 transition`}
+                } pb-1 transition`}
               >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                {tab.charAt(0).toUpperCase()+tab.slice(1)}
               </button>
             ))}
           </nav>
 
-          {/* Actions */}
+          {/* Log Out & New Project */}
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => setShowSignup(true)}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition"
+              onClick={doLogout}
+              className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition"
             >
-              Sign Up
+              Log Out
             </button>
             <button
               onClick={() => { openModal(); setActiveTab('dashboard'); }}
@@ -100,7 +152,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* MAIN */}
       <main className="max-w-7xl mx-auto px-6 py-8 relative">
         {activeTab === 'dashboard' && (
           <>
@@ -113,27 +164,26 @@ export default function App() {
               filter={filter}
               search={search}
               onEdit={openModal}
-              onDelete={id => setProjects(projects.filter(p => p.id !== id))}
+              onDelete={id=> setProjects(projects.filter(p=>p.id!==id))}
             />
           </>
         )}
-
         {activeTab === 'projects' && (
           <ProjectsView
             projects={projects}
             onEdit={openModal}
-            onDelete={id => setProjects(projects.filter(p => p.id !== id))}
+            onDelete={id=> setProjects(projects.filter(p=>p.id!==id))}
           />
         )}
-
         {activeTab === 'reports' && (
-          <ReportsView
-            projects={projects}
-          />
+          <ReportsView projects={projects} />
         )}
-
         {activeTab === 'settings' && (
-          <Settings onClearAll={clearAll} />
+          <Settings onClearAll={()=>{
+            if(window.confirm('Clear all?')){
+              setProjects([]); saveProjects([]);
+            }
+          }} />
         )}
 
         {modalProject && (
@@ -141,18 +191,10 @@ export default function App() {
             project={modalProject}
             onSave={saveProject}
             onCancel={closeModal}
-            users={users}
+            users={loadUsers()}
           />
         )}
       </main>
-
-      {/* Signup Modal */}
-      {showSignup && (
-        <SignupModal
-          onClose={() => setShowSignup(false)}
-          onUsersChange={setUsers}
-        />
-      )}
     </>
   );
 }
