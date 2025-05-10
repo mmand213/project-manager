@@ -16,6 +16,7 @@
     "clsx": "^1.2.1",
     "js-sha256": "^0.9.0",
     "clsx": "^1.2.1",
+    "papaparse": "^5.4.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.0.0",
