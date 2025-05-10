@@ -1,25 +1,42 @@
 // src/utils/users.js
-const KEY = 'pm-app-users';
+import { sha256 } from 'js-sha256'
 
+const USERS_KEY = 'pm-users'
+
+// one “Admin” user, ready to log in immediately
+const DEFAULT_USERS = [
+  {
+    id: 1,
+    name: 'Admin',
+    email: 'admin@example.com',
+    passwordHash: sha256('1234'),
+  },
+]
+
+/**
+ * Always returns an array of users. 
+ * If none in storage, seed DEFAULT_USERS.
+ */
 export function loadUsers() {
+  const raw = localStorage.getItem(USERS_KEY)
+  if (!raw) {
+    localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS))
+    return DEFAULT_USERS
+  }
   try {
-    const raw = localStorage.getItem(KEY);
-    // if nothing in storage return empty array
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    // ensure it’s actually an array
-    return Array.isArray(parsed) ? parsed : [];
-  } catch (err) {
-    console.error('Error loading users from localStorage', err);
-    return [];
+    return JSON.parse(raw)
+  } catch {
+    return []
   }
 }
 
-export function saveUsers(users) {
-  // only save if it’s an array
-  if (Array.isArray(users)) {
-    localStorage.setItem(KEY, JSON.stringify(users));
-  } else {
-    console.warn('saveUsers: expected an array, got', users);
-  }
+/**
+ * Add a new user (called by your SignupModal).
+ * Returns the updated list.
+ */
+export function saveUsers(newUser) {
+  const existing = loadUsers()
+  const updated  = [...existing, newUser]
+  localStorage.setItem(USERS_KEY, JSON.stringify(updated))
+  return updated
 }
