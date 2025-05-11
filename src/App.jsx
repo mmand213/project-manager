@@ -18,6 +18,9 @@ export default function App() {
   const [search, setSearch]     = useState('')
   const [modalProject, setModalProject] = useState(null)
 
+  // CONFIRM CLEAR STATE
+  const [showClearConfirm, setShowClearConfirm] = useState(false)
+
   // TABS: dashboard|projects|reports|settings
   const [activeTab, setActiveTab] = useState('dashboard')
 
@@ -30,7 +33,7 @@ export default function App() {
   useEffect(() => { setUsers(loadUsers()) }, [])
 
   // PROJECT MODAL
-  const openModal = (proj) =>
+  const openModal = proj =>
     setModalProject(
       proj || {
         id: Date.now(),
@@ -52,12 +55,14 @@ export default function App() {
     closeModal()
   }
 
-  // CLEAR ALL (settings)
-  const clearAll = () => {
-    if (window.confirm('Really clear all projects?')) {
-      setProjects([])
-      saveProjects([])
-    }
+  // trigger in-app confirmation
+  const askClearAll = () => setShowClearConfirm(true)
+
+  // actually clear
+  const confirmClear = () => {
+    setProjects([])
+    saveProjects([])
+    setShowClearConfirm(false)
   }
 
   return (
@@ -115,7 +120,7 @@ export default function App() {
                 <FilterPanel filter={filter} onChange={setFilter} />
               </div>
               <button
-                onClick={clearAll}
+                onClick={askClearAll}
                 className="px-3 py-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition"
               >
                 Clear All Projects
@@ -145,7 +150,7 @@ export default function App() {
 
         {activeTab === 'settings' && (
           <Settings
-            onClearAll={clearAll}
+            onClearAll={() => askClearAll()}
             users={users}
             setUsers={setUsers}
           />
@@ -160,6 +165,32 @@ export default function App() {
           />
         )}
       </main>
+
+      {/* IN-APP CLEAR CONFIRMATION */}
+      {showClearConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-full max-w-sm mx-4">
+            <h3 className="text-xl font-semibold mb-4">Clear All Projects?</h3>
+            <p className="mb-6 text-gray-700">
+              This action will permanently delete <strong>all</strong> projects. Are you sure you want to continue?
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowClearConfirm(false)}
+                className="px-4 py-2 border rounded hover:bg-gray-100 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmClear}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              >
+                Yes, Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
