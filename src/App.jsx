@@ -1,42 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import NinjaStarsBackground from './components/NinjaStarsBackground';
-import Dashboard from './components/Dashboard';
-import ProjectsView from './components/ProjectsView';
-import ReportsView from './components/ReportsView';
-import ProjectModal from './components/ProjectModal';
-import FilterPanel from './components/FilterPanel';
-import SearchBar from './components/SearchBar';
-import SignupModal from './components/SignupModal';
-import LoginModal from './components/LoginModal';
-import Settings from './components/Settings';
-import { loadProjects, saveProjects } from './utils/storage';
-import { loadUsers } from './utils/users';
-import { loadCurrentUser, saveCurrentUser } from './utils/auth';
+// src/App.jsx
+import React, { useState, useEffect } from 'react'
+import NinjaStarsBackground from './components/NinjaStarsBackground'
+import Dashboard from './components/Dashboard'
+import ProjectsView from './components/ProjectsView'
+import ReportsView from './components/ReportsView'
+import ProjectModal from './components/ProjectModal'
+import FilterPanel from './components/FilterPanel'
+import SearchBar from './components/SearchBar'
+import Settings from './components/Settings'
+import { loadProjects, saveProjects } from './utils/storage'
+import { loadUsers } from './utils/users'
 
 export default function App() {
   // PROJECT STATE
-  const [projects, setProjects] = useState([]);
-  const [filter, setFilter]     = useState('all');
-  const [search, setSearch]     = useState('');
-  const [modalProject, setModalProject] = useState(null);
+  const [projects, setProjects] = useState([])
+  const [filter, setFilter]     = useState('all')
+  const [search, setSearch]     = useState('')
+  const [modalProject, setModalProject] = useState(null)
 
-  // NAV TABS
-  const [activeTab, setActiveTab] = useState('dashboard');
-
-  // AUTH
-  const [users, setUsers]           = useState([]);
-  const [currentUser, setCurrentUser] = useState(loadCurrentUser());
-  const [authMode, setAuthMode]     = useState('login'); // 'login' or 'signup'
+  // TABS: dashboard|projects|reports|settings
+  const [activeTab, setActiveTab] = useState('dashboard')
 
   // load + persist projects
-  useEffect(() => setProjects(loadProjects()), []);
-  useEffect(() => saveProjects(projects), [projects]);
+  useEffect(() => { setProjects(loadProjects()) }, [])
+  useEffect(() => { saveProjects(projects) }, [projects])
 
-  // load users
-  useEffect(() => setUsers(loadUsers()), []);
+  // load users (for assigning projects, settings)
+  const [users, setUsers] = useState([])
+  useEffect(() => { setUsers(loadUsers()) }, [])
 
-  // project modal
-  const openModal = proj =>
+  // PROJECT MODAL
+  const openModal = (proj) =>
     setModalProject(
       proj || {
         id: Date.now(),
@@ -44,52 +38,28 @@ export default function App() {
         agent: '',
         tasks: [],
         status: 'upcoming',
-        deadline: '',
+        deadline: ''
       }
-    );
-  const closeModal = () => setModalProject(null);
+    )
+  const closeModal = () => setModalProject(null)
   function saveProject(proj) {
     setProjects(ps => {
-      const exists = ps.find(p => p.id === proj.id);
+      const exists = ps.find(p => p.id === proj.id)
       return exists
-        ? ps.map(p => (p.id === proj.id ? proj : p))
-        : [...ps, proj];
-    });
-    closeModal();
+        ? ps.map(p => p.id === proj.id ? proj : p)
+        : [...ps, proj]
+    })
+    closeModal()
   }
 
-  // clear all (settings)
+  // CLEAR ALL (settings)
   const clearAll = () => {
     if (window.confirm('Really clear all projects?')) {
-      setProjects([]);
-      saveProjects([]);
+      setProjects([])
+      saveProjects([])
     }
-  };
-
-  // if not logged in, show login/signup
-  if (!currentUser) {
-    return authMode === 'login' ? (
-      <LoginModal
-        onClose={() => {}}
-        onLogin={user => {
-          saveCurrentUser(user);
-          setCurrentUser(user);
-        }}
-        onSwitch={() => setAuthMode('signup')}
-      />
-    ) : (
-      <SignupModal
-        onClose={() => setAuthMode('login')}
-        onUsersChange={us => {
-          setUsers(us);
-          setAuthMode('login');
-        }}
-        onSwitch={() => setAuthMode('login')}
-      />
-    );
   }
 
-  // main app UI
   return (
     <>
       <NinjaStarsBackground />
@@ -107,7 +77,7 @@ export default function App() {
 
           {/* Tabs */}
           <nav className="hidden md:flex space-x-8 text-lg">
-            {['dashboard', 'projects', 'reports', 'settings'].map(tab => (
+            {['dashboard','projects','reports','settings'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -115,7 +85,7 @@ export default function App() {
                   activeTab === tab
                     ? 'text-primary border-b-2 border-primary'
                     : 'text-gray-600 hover:text-primary'
-                } pb-1 transition`}
+                  } pb-1 transition`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -124,21 +94,14 @@ export default function App() {
 
           {/* Actions */}
           <div className="flex items-center space-x-4">
-            <span className="text-gray-600">Hello, {currentUser.name}</span>
             <button
-              onClick={() => {
-                saveCurrentUser(null);
-                setCurrentUser(null);
-              }}
+              onClick={clearAll}
               className="text-red-600 hover:underline"
             >
-              Sign Out
+              Clear All
             </button>
             <button
-              onClick={() => {
-                openModal();
-                setActiveTab('dashboard');
-              }}
+              onClick={() => openModal()}
               className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primaryLight transition"
             >
               New Project
@@ -173,9 +136,17 @@ export default function App() {
           />
         )}
 
-        {activeTab === 'reports' && <ReportsView projects={projects} />}
+        {activeTab === 'reports' && (
+          <ReportsView projects={projects} />
+        )}
 
-        {activeTab === 'settings' && <Settings onClearAll={clearAll} users={users} setUsers={setUsers} />}
+        {activeTab === 'settings' && (
+          <Settings
+            onClearAll={clearAll}
+            users={users}
+            setUsers={setUsers}
+          />
+        )}
 
         {modalProject && (
           <ProjectModal
@@ -187,5 +158,5 @@ export default function App() {
         )}
       </main>
     </>
-  );
+  )
 }
