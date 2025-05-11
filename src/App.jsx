@@ -5,7 +5,7 @@ import Dashboard from './components/Dashboard'
 import ProjectsView from './components/ProjectsView'
 import ReportsView from './components/ReportsView'
 import ProjectModal from './components/ProjectModal'
-import AgentModal from './components/AgentModal'      // ← new
+import AgentModal from './components/AddAgentModal'      // ← new
 import FilterPanel from './components/FilterPanel'
 import SearchBar from './components/SearchBar'
 import Settings from './components/Settings'
