@@ -5,12 +5,12 @@ import Dashboard from './components/Dashboard'
 import ProjectsView from './components/ProjectsView'
 import ReportsView from './components/ReportsView'
 import ProjectModal from './components/ProjectModal'
-import AddAgentModal from './components/AddAgentModal'      // ← new
+import AgentModal from './components/AgentModal'      // ← new
 import FilterPanel from './components/FilterPanel'
 import SearchBar from './components/SearchBar'
 import Settings from './components/Settings'
 import { loadProjects, saveProjects } from './utils/storage'
-import { loadUsers } from './utils/users'
+import { loadUsers, saveUsers } from './utils/users'  // ← import saveUsers
 
 export default function App() {
   // PROJECT STATE
@@ -19,22 +19,24 @@ export default function App() {
   const [search, setSearch]     = useState('')
   const [modalProject, setModalProject] = useState(null)
 
-  // AGENT MODAL STATE
-  const [showAddAgent, setShowAddAgent] = useState(false)
+  // AGENT STATE
+  const [agentModalOpen, setAgentModalOpen] = useState(false)
 
   // TABS: dashboard|projects|reports|settings
   const [activeTab, setActiveTab] = useState('dashboard')
+
+  // USERS (AGENTS)
+  const [users, setUsers] = useState([])
 
   // load + persist projects
   useEffect(() => { setProjects(loadProjects()) }, [])
   useEffect(() => { saveProjects(projects) }, [projects])
 
-  // load users (for assigning projects, settings)
-  const [users, setUsers] = useState([])
+  // load users
   useEffect(() => { setUsers(loadUsers()) }, [])
 
-  // PROJECT MODAL
-  const openProjectModal = proj =>
+  // PROJECT MODAL handlers
+  const openProjectModal = (proj) =>
     setModalProject(
       proj || {
         id: Date.now(),
@@ -56,13 +58,22 @@ export default function App() {
     closeProjectModal()
   }
 
-  // AGENT MODAL
-  const openAgentModal = () => setShowAddAgent(true)
-  const closeAgentModal = () => setShowAddAgent(false)
+  // AGENT MODAL handlers
+  const openAgentModal = () => setAgentModalOpen(true)
+  const closeAgentModal = () => setAgentModalOpen(false)
   function saveAgent(agent) {
-    // you'll implement saving into your users store
-    setUsers(us => [...us, agent])
+    // saveUsers returns updated array
+    const updated = saveUsers(agent)
+    setUsers(updated)
     closeAgentModal()
+  }
+
+  // CLEAR ALL (settings)
+  const clearAll = () => {
+    if (window.confirm('Really clear all projects?')) {
+      setProjects([])
+      saveProjects([])
+    }
   }
 
   return (
@@ -98,18 +109,26 @@ export default function App() {
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             <button
-              onClick={openProjectModal}
-              className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primaryLight transition"
+              onClick={() => openProjectModal()}
+              className="px-4 py-2 bg-primary text-white rounded-full hover:bg-primaryLight transition"
             >
               New Project
             </button>
+
             <button
               onClick={openAgentModal}
-              className="border border-primary text-primary px-5 py-2 rounded-lg hover:bg-primaryLight/20 transition"
+              className="px-4 py-2 border-2 border-primary text-primary bg-white rounded-full hover:bg-primaryLight hover:text-white transition"
             >
               Add Agent
+            </button>
+
+            <button
+              onClick={clearAll}
+              className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-400 transition"
+            >
+              Clear All
             </button>
           </div>
         </div>
@@ -146,10 +165,14 @@ export default function App() {
         )}
 
         {activeTab === 'settings' && (
-          <Settings users={users} setUsers={setUsers} />
+          <Settings
+            onClearAll={clearAll}
+            users={users}
+            setUsers={setUsers}
+          />
         )}
 
-        {/* Project Modal */}
+        {/* MODALS */}
         {modalProject && (
           <ProjectModal
             project={modalProject}
@@ -158,10 +181,8 @@ export default function App() {
             users={users}
           />
         )}
-
-        {/* Add Agent Modal */}
-        {showAddAgent && (
-          <AddAgentModal
+        {agentModalOpen && (
+          <AgentModal
             onSave={saveAgent}
             onCancel={closeAgentModal}
           />
