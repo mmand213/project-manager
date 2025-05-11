@@ -52,7 +52,7 @@ export default function App() {
     closeModal()
   }
 
-  // CLEAR ALL (projects)
+  // CLEAR ALL (settings)
   const clearAll = () => {
     if (window.confirm('Really clear all projects?')) {
       setProjects([])
@@ -108,6 +108,7 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-6 py-8 relative">
         {activeTab === 'dashboard' && (
           <>
+            {/* Search + Filters + “Clear All” pill */}
             <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
               <div className="flex flex-col md:flex-row md:items-center md:space-x-4 w-full md:w-auto">
                 <SearchBar value={search} onChange={setSearch} />
@@ -115,7 +116,7 @@ export default function App() {
               </div>
               <button
                 onClick={clearAll}
-                className="self-start md:self-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                className="px-3 py-1 rounded-full bg-red-600 text-white hover:bg-red-700 transition"
               >
                 Clear All Projects
               </button>
