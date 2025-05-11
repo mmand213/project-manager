@@ -52,7 +52,7 @@ export default function App() {
     closeModal()
   }
 
-  // CLEAR ALL (settings)
+  // CLEAR ALL (projects)
   const clearAll = () => {
     if (window.confirm('Really clear all projects?')) {
       setProjects([])
@@ -95,12 +95,6 @@ export default function App() {
           {/* Actions */}
           <div className="flex items-center space-x-4">
             <button
-              onClick={clearAll}
-              className="text-red-600 hover:underline"
-            >
-              Clear All
-            </button>
-            <button
               onClick={() => openModal()}
               className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primaryLight transition"
             >
@@ -114,9 +108,17 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-6 py-8 relative">
         {activeTab === 'dashboard' && (
           <>
-            <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
-              <SearchBar value={search} onChange={setSearch} />
-              <FilterPanel filter={filter} onChange={setFilter} />
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 space-y-4 md:space-y-0">
+              <div className="flex flex-col md:flex-row md:items-center md:space-x-4 w-full md:w-auto">
+                <SearchBar value={search} onChange={setSearch} />
+                <FilterPanel filter={filter} onChange={setFilter} />
+              </div>
+              <button
+                onClick={clearAll}
+                className="self-start md:self-center bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+              >
+                Clear All Projects
+              </button>
             </div>
             <Dashboard
               projects={projects}
