@@ -5,7 +5,6 @@ import Dashboard from './components/Dashboard'
 import ProjectsView from './components/ProjectsView'
 import ReportsView from './components/ReportsView'
 import ProjectModal from './components/ProjectModal'
-import AddAgentModal from './components/AddAgentModal'      // ← new
 import FilterPanel from './components/FilterPanel'
 import SearchBar from './components/SearchBar'
 import Settings from './components/Settings'
@@ -19,9 +18,6 @@ export default function App() {
   const [search, setSearch]     = useState('')
   const [modalProject, setModalProject] = useState(null)
 
-  // AGENT MODAL STATE
-  const [showAddAgent, setShowAddAgent] = useState(false)
-
   // TABS: dashboard|projects|reports|settings
   const [activeTab, setActiveTab] = useState('dashboard')
 
@@ -34,7 +30,7 @@ export default function App() {
   useEffect(() => { setUsers(loadUsers()) }, [])
 
   // PROJECT MODAL
-  const openProjectModal = proj =>
+  const openModal = (proj) =>
     setModalProject(
       proj || {
         id: Date.now(),
@@ -45,7 +41,7 @@ export default function App() {
         deadline: ''
       }
     )
-  const closeProjectModal = () => setModalProject(null)
+  const closeModal = () => setModalProject(null)
   function saveProject(proj) {
     setProjects(ps => {
       const exists = ps.find(p => p.id === proj.id)
@@ -53,16 +49,15 @@ export default function App() {
         ? ps.map(p => p.id === proj.id ? proj : p)
         : [...ps, proj]
     })
-    closeProjectModal()
+    closeModal()
   }
 
-  // AGENT MODAL
-  const openAgentModal = () => setShowAddAgent(true)
-  const closeAgentModal = () => setShowAddAgent(false)
-  function saveAgent(agent) {
-    // you'll implement saving into your users store
-    setUsers(us => [...us, agent])
-    closeAgentModal()
+  // CLEAR ALL (settings)
+  const clearAll = () => {
+    if (window.confirm('Really clear all projects?')) {
+      setProjects([])
+      saveProjects([])
+    }
   }
 
   return (
@@ -91,6 +86,7 @@ export default function App() {
                     ? 'text-primary border-b-2 border-primary'
                     : 'text-gray-600 hover:text-primary'
                   } pb-1 transition`}
+                type="button"
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -100,16 +96,18 @@ export default function App() {
           {/* Actions */}
           <div className="flex items-center space-x-4">
             <button
-              onClick={openProjectModal}
+              type="button"
+              onClick={clearAll}
+              className="text-red-600 hover:underline"
+            >
+              Clear All
+            </button>
+            <button
+              type="button"
+              onClick={() => openModal()}
               className="bg-primary text-white px-5 py-2 rounded-lg hover:bg-primaryLight transition"
             >
               New Project
-            </button>
-            <button
-              onClick={openAgentModal}
-              className="border border-primary text-primary px-5 py-2 rounded-lg hover:bg-primaryLight/20 transition"
-            >
-              Add Agent
             </button>
           </div>
         </div>
@@ -127,7 +125,7 @@ export default function App() {
               projects={projects}
               filter={filter}
               search={search}
-              onEdit={openProjectModal}
+              onEdit={openModal}
               onDelete={id => setProjects(ps => ps.filter(p => p.id !== id))}
             />
           </>
@@ -136,7 +134,7 @@ export default function App() {
         {activeTab === 'projects' && (
           <ProjectsView
             projects={projects}
-            onEdit={openProjectModal}
+            onEdit={openModal}
             onDelete={id => setProjects(ps => ps.filter(p => p.id !== id))}
           />
         )}
@@ -146,24 +144,19 @@ export default function App() {
         )}
 
         {activeTab === 'settings' && (
-          <Settings users={users} setUsers={setUsers} />
+          <Settings
+            onClearAll={clearAll}
+            users={users}
+            setUsers={setUsers}
+          />
         )}
 
-        {/* Project Modal */}
         {modalProject && (
           <ProjectModal
             project={modalProject}
             onSave={saveProject}
-            onCancel={closeProjectModal}
+            onCancel={closeModal}
             users={users}
-          />
-        )}
-
-        {/* Add Agent Modal */}
-        {showAddAgent && (
-          <AddAgentModal
-            onSave={saveAgent}
-            onCancel={closeAgentModal}
           />
         )}
       </main>
