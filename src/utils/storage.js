@@ -1,44 +1,30 @@
 // src/utils/storage.js
 
-const PROJECTS_KEY = 'pm-projects'
-
-// an initial set of shared demo projects
-const DEMO_PROJECTS = [
+// your “built-in” bootstrapped projects:
+const DEFAULT_PROJECTS = [
   {
     id: 1,
-    title: 'NPS Migration',
-    agent: 'Admin',
-    tasks: [{ id: 1, text: 'Plan rollout', done: true }],
-    status: 'completed',
-    deadline: '2025-10-07',
+    title: "NPS Migration",
+    agent: "Manpreet",
+    tasks: [{ id: 1, text: "Kickoff meeting", done: true }],
+    status: "in-progress",
+    deadline: "2025-10-07",
   },
-  {
-    id: 2,
-    title: 'UI Redesign',
-    agent: null,
-    tasks: [
-      { id: 1, text: 'Wireframes', done: false },
-      { id: 2, text: 'Prototype', done: false },
-    ],
-    status: 'in-progress',
-    deadline: '2025-05-22',
-  },
-]
+  // …whatever else you had seeded originally
+];
 
 export function loadProjects() {
-  const raw = localStorage.getItem(PROJECTS_KEY)
-  if (!raw) {
-    // first‐time: seed the demo
-    localStorage.setItem(PROJECTS_KEY, JSON.stringify(DEMO_PROJECTS))
-    return DEMO_PROJECTS
+  const raw = localStorage.getItem("projects");
+  if (raw) {
+    try {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) return arr;
+    } catch {}
   }
-  try {
-    return JSON.parse(raw)
-  } catch {
-    return []
-  }
+  // if nothing in localStorage, return the built-in list
+  return DEFAULT_PROJECTS;
 }
 
 export function saveProjects(projects) {
-  localStorage.setItem(PROJECTS_KEY, JSON.stringify(projects))
+  localStorage.setItem("projects", JSON.stringify(projects));
 }
