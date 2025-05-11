@@ -5,18 +5,18 @@ import Dashboard from './components/Dashboard'
 import ProjectsView from './components/ProjectsView'
 import ReportsView from './components/ReportsView'
 import ProjectModal from './components/ProjectModal'
-import AgentModal from './components/AddAgentModal'      // ← new
+import AgentModal from './components/AddAgentModal'
 import FilterPanel from './components/FilterPanel'
 import SearchBar from './components/SearchBar'
 import Settings from './components/Settings'
 import { loadProjects, saveProjects } from './utils/storage'
-import { loadUsers, saveUsers } from './utils/users'  // ← import saveUsers
+import { loadUsers, saveUsers } from './utils/users'
 
 export default function App() {
   // PROJECT STATE
   const [projects, setProjects] = useState([])
-  const [filter, setFilter]     = useState('all')
-  const [search, setSearch]     = useState('')
+  const [filter,   setFilter]   = useState('all')
+  const [search,   setSearch]   = useState('')
   const [modalProject, setModalProject] = useState(null)
 
   // AGENT STATE
@@ -62,13 +62,12 @@ export default function App() {
   const openAgentModal = () => setAgentModalOpen(true)
   const closeAgentModal = () => setAgentModalOpen(false)
   function saveAgent(agent) {
-    // saveUsers returns updated array
     const updated = saveUsers(agent)
     setUsers(updated)
     closeAgentModal()
   }
 
-  // CLEAR ALL (settings)
+  // CLEAR ALL (projects)
   const clearAll = () => {
     if (window.confirm('Really clear all projects?')) {
       setProjects([])
@@ -119,16 +118,9 @@ export default function App() {
 
             <button
               onClick={openAgentModal}
-              className="px-4 py-2 border-2 border-primary text-primary bg-white rounded-full hover:bg-primaryLight hover:text-white transition"
+              className="px-4 py-2 border-2 border-primary text-primary rounded-full hover:bg-primaryLight hover:text-white transition"
             >
               Add Agent
-            </button>
-
-            <button
-              onClick={clearAll}
-              className="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-400 transition"
-            >
-              Clear All
             </button>
           </div>
         </div>
@@ -138,10 +130,18 @@ export default function App() {
       <main className="max-w-7xl mx-auto px-6 py-8 relative">
         {activeTab === 'dashboard' && (
           <>
+            {/* Search + Filters + ClearAll pill */}
             <div className="flex flex-col md:flex-row md:items-center md:space-x-4 mb-6">
               <SearchBar value={search} onChange={setSearch} />
               <FilterPanel filter={filter} onChange={setFilter} />
+              <button
+                onClick={clearAll}
+                className="mt-3 md:mt-0 px-3 py-1 border rounded-full text-red-600 border-red-600 hover:bg-red-600 hover:text-white transition"
+              >
+                Clear All
+              </button>
             </div>
+
             <Dashboard
               projects={projects}
               filter={filter}
