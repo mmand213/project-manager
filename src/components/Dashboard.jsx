@@ -1,37 +1,135 @@
+import React, { useState, useEffect } from "react";
+import ProjectFormModal from "./ProjectFormModal";
+import AddAgentModal from "./AddAgentModal";
+import { getProjects, deleteProject, clearProjects } from "../utils/localStorage";
 
-import React from 'react';
+export default function Dashboard() {
+  const [projects, setProjects] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [editingProject, setEditingProject] = useState(null);
+  const [filter, setFilter] = useState("All");
+  const [showAgentModal, setShowAgentModal] = useState(false);
 
-const Dashboard = ({ projects }) => {
+  useEffect(() => {
+    setProjects(getProjects());
+  }, []);
+
+  const handleDelete = (id) => {
+    deleteProject(id);
+    setProjects(getProjects());
+  };
+
+  const handleEdit = (project) => {
+    setEditingProject(project);
+    setShowModal(true);
+  };
+
+  const handleClearAll = () => {
+    clearProjects();
+    setProjects([]);
+  };
+
+  const filteredProjects = projects.filter((project) => {
+    if (filter === "All") return true;
+    return project.status === filter;
+  });
+
   return (
-    <div className="dashboard">
-      {projects.length === 0 ? (
-        <p>No projects found.</p>
-      ) : (
-        projects.map((project) => (
-          <div className="project-card" key={project.id}>
-            <h3>{project.title}</h3>
-            <p><strong>Assigned to:</strong> {project.agent}</p>
-            <p>Tasks: {project.tasks?.length || 0}/{project.tasks?.length || 0}</p>
-            <p><strong>Deadline:</strong> {project.deadline}</p>
+    <div className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            New Project
+          </button>
+          <button
+            onClick={() => setShowAgentModal(true)}
+            className="border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50"
+          >
+            Add Agent
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {["All", "In Progress", "Completed", "Upcoming"].map((status) => (
+          <button
+            key={status}
+            onClick={() => setFilter(status)}
+            className={`px-3 py-1 rounded ${
+              filter === status ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
+            }`}
+          >
+            {status}
+          </button>
+        ))}
+        <button
+          onClick={handleClearAll}
+          className="ml-auto text-red-600 border border-red-600 px-3 py-1 rounded hover:bg-red-50"
+        >
+          Clear All
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredProjects.map((project) => (
+          <div key={project.id} className="bg-white p-6 rounded shadow">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">{project.title}</h2>
+            <p className="text-sm mb-1">
+              <strong>Assigned to:</strong> {project.agent}
+            </p>
+            <p className="text-sm mb-1">
+              <strong>Tasks:</strong> {project.tasks.filter((t) => t.trim() !== "").length}/{project.tasks.length}
+            </p>
+            <p className="text-sm mb-4">
+              <strong>Deadline:</strong> {project.deadline}
+            </p>
             {project.tasks && project.tasks.length > 0 && (
-              <ul className="task-list">
-                {project.tasks.map((task, idx) => (
-                  <li key={idx}>
-                    <input type="checkbox" disabled checked={task.completed} />
-                    {task.name}
-                  </li>
+              <ul className="mb-4 list-disc pl-5 text-sm text-gray-700">
+                {project.tasks.map((task, index) => (
+                  <li key={index}>{task}</li>
                 ))}
               </ul>
             )}
-            <div className="project-actions">
-              <button>Edit</button>
-              <button className="delete-btn">Delete</button>
+            <div className="flex gap-3 text-sm">
+              <button
+                onClick={() => handleEdit(project)}
+                className="text-blue-600 hover:underline"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDelete(project.id)}
+                className="text-red-600 hover:underline"
+              >
+                Delete
+              </button>
             </div>
           </div>
-        ))
+        ))}
+      </div>
+
+      {showModal && (
+        <ProjectFormModal
+          isOpen={showModal}
+          onClose={() => {
+            setShowModal(false);
+            setEditingProject(null);
+            setProjects(getProjects());
+          }}
+          editingProject={editingProject}
+        />
+      )}
+
+      {showAgentModal && (
+        <AddAgentModal
+          isOpen={showAgentModal}
+          onClose={() => setShowAgentModal(false)}
+        />
       )}
     </div>
   );
-};
-
-export default Dashboard;
+}
