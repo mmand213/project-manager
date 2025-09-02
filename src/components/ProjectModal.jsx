@@ -1,4 +1,3 @@
-// src/components/ProjectModal.jsx
 import React, { useState } from 'react';
 import TaskItem from './TaskItem';
 import { loadUsers } from '../utils/users';
@@ -11,10 +10,8 @@ export default function ProjectModal({ project, onSave, onCancel }) {
   const [tasks, setTasks]             = useState(project.tasks || []);
   const [newTaskText, setNewTaskText] = useState('');
 
-  // load your existing user list
   const users = loadUsers();
 
-  // Add a new task
   const addTask = () => {
     const text = newTaskText.trim();
     if (!text) return;
@@ -22,17 +19,14 @@ export default function ProjectModal({ project, onSave, onCancel }) {
     setNewTaskText('');
   };
 
-  // Toggle complete/uncomplete
   const toggleTask = id =>
     setTasks(tasks.map(t =>
       t.id === id ? { ...t, completed: !t.completed } : t
     ));
 
-  // Delete a task
   const deleteTask = id =>
     setTasks(tasks.filter(t => t.id !== id));
 
-  // Save handler
   const handleSubmit = () => {
     const updatedProject = {
       ...project,
@@ -44,9 +38,8 @@ export default function ProjectModal({ project, onSave, onCancel }) {
     };
 
     if (onSave) {
-      onSave(updatedProject);   // ✅ immediately tell Dashboard about new/edited project
+      onSave(updatedProject);   // ✅ immediately update Dashboard + localStorage
     }
-
     if (onCancel) {
       onCancel();               // ✅ close modal after save
     }
