@@ -1,6 +1,8 @@
+// src/components/ProjectModal.jsx
 import React, { useState } from 'react';
 import TaskItem from './TaskItem';
 import { loadUsers } from '../utils/users';
+import { loadProjects, saveProjects } from '../utils/storage.js';
 
 export default function ProjectModal({ project, onSave, onCancel }) {
   const [title, setTitle]             = useState(project.title || '');
@@ -37,19 +39,31 @@ export default function ProjectModal({ project, onSave, onCancel }) {
       tasks
     };
 
+    // Prefer parent save if provided (Dashboard or Navbar can handle it)
     if (onSave) {
-      onSave(updatedProject);   // ✅ immediately update Dashboard + localStorage
+      onSave(updatedProject);
+    } else {
+      // Fallback: save directly to localStorage if no parent provided
+      const current = loadProjects() || [];
+      const exists = current.some(p => p.id === updatedProject.id);
+      const next = exists
+        ? current.map(p => (p.id === updatedProject.id ? updatedProject : p))
+        : [...current, updatedProject];
+      saveProjects(next);
     }
-    if (onCancel) {
-      onCancel();               // ✅ close modal after save
-    }
+
+    // Broadcast a change event so any view (Dashboard) refreshes immediately
+    window.dispatchEvent(new Event('projects:changed'));
+
+    // Close modal
+    if (onCancel) onCancel();
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg w-full max-w-lg">
         <h2 className="text-2xl font-semibold mb-4">
-          {project.id ? 'Edit Project' : 'New Project'}
+          {project?.id ? 'Edit Project' : 'New Project'}
         </h2>
 
         {/* Title */}
