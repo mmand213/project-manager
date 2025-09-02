@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import ProjectModal from "./ProjectModal.jsx";   // correct import
-import AddAgentModal from "./AddAgentModal.jsx"; // correct import
-import { getProjects, deleteProject, clearProjects } from "../utils/localStorage";
+import ProjectModal from "./ProjectModal.jsx";
+import AddAgentModal from "./AddAgentModal.jsx";
+import { loadProjects, saveProjects } from "../utils/storage.js";
 
 export default function Dashboard() {
   const [projects, setProjects] = useState([]);
@@ -15,12 +15,13 @@ export default function Dashboard() {
   }, []);
 
   const refreshProjects = () => {
-    setProjects(getProjects() || []);
+    setProjects(loadProjects() || []);
   };
 
   const handleDelete = (id) => {
-    deleteProject(id);
-    refreshProjects();
+    const updated = projects.filter((p) => p.id !== id);
+    saveProjects(updated);
+    setProjects(updated);
   };
 
   const handleEdit = (project) => {
@@ -30,7 +31,7 @@ export default function Dashboard() {
 
   const handleClearAll = () => {
     if (window.confirm("Are you sure you want to remove all projects?")) {
-      clearProjects();
+      saveProjects([]); // clears everything
       setProjects([]);
     }
   };
@@ -95,7 +96,7 @@ export default function Dashboard() {
             </p>
             <p className="text-sm mb-1">
               <strong>Tasks:</strong>{" "}
-              {project.tasks?.filter((t) => t.trim() !== "").length || 0}/
+              {project.tasks?.filter((t) => t.text?.trim() !== "").length || 0}/
               {project.tasks?.length || 0}
             </p>
             <p className="text-sm mb-4">
@@ -106,7 +107,7 @@ export default function Dashboard() {
             {project.tasks && project.tasks.length > 0 && (
               <ul className="mb-4 list-disc pl-5 text-sm text-gray-700">
                 {project.tasks.map((task, index) =>
-                  task.trim() !== "" ? <li key={index}>{task}</li> : null
+                  task.text?.trim() !== "" ? <li key={index}>{task.text}</li> : null
                 )}
               </ul>
             )}
