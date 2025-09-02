@@ -9,20 +9,8 @@ export default function Dashboard() {
   const [editingProject, setEditingProject] = useState(null);
   const [showAgentModal, setShowAgentModal] = useState(false);
 
-  // Initial load
   useEffect(() => {
     setProjects(loadProjects() || []);
-  }, []);
-
-  // Listen for global "projects changed" events (e.g., modal opened from navbar)
-  useEffect(() => {
-    const handleProjectsChanged = () => {
-      setProjects(loadProjects() || []);
-    };
-    window.addEventListener("projects:changed", handleProjectsChanged);
-    return () => {
-      window.removeEventListener("projects:changed", handleProjectsChanged);
-    };
   }, []);
 
   const handleDelete = (id) => {
@@ -36,8 +24,32 @@ export default function Dashboard() {
     setShowModal(true);
   };
 
+  const handleNewProject = () => {
+    setEditingProject(null);
+    setShowModal(true);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
+      {/* Replace your old navbar New Project button with this one */}
+      <div className="flex justify-between mb-6">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <div className="flex gap-2">
+          <button
+            onClick={handleNewProject}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            New Project
+          </button>
+          <button
+            onClick={() => setShowAgentModal(true)}
+            className="border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50"
+          >
+            Add Agent
+          </button>
+        </div>
+      </div>
+
       {/* Projects Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {projects.length === 0 ? (
@@ -92,7 +104,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Project modal (used when you click Edit on a card) */}
+      {/* Project modal */}
       {showModal && (
         <ProjectModal
           project={
@@ -108,18 +120,14 @@ export default function Dashboard() {
           onSave={(newProject) => {
             let updated;
             if (projects.some((p) => p.id === newProject.id)) {
-              // update existing
               updated = projects.map((p) =>
                 p.id === newProject.id ? newProject : p
               );
             } else {
-              // add new
               updated = [...projects, newProject];
             }
             saveProjects(updated);
-            setProjects(updated); // immediate UI update
-            // also broadcast to keep everything in sync
-            window.dispatchEvent(new Event("projects:changed"));
+            setProjects(updated);
             setShowModal(false);
             setEditingProject(null);
           }}
@@ -130,7 +138,7 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Agent modal (kept as-is if you use it elsewhere) */}
+      {/* Agent modal */}
       {showAgentModal && (
         <AddAgentModal
           isOpen={showAgentModal}
