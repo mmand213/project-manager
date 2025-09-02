@@ -4,11 +4,11 @@ import TaskItem from './TaskItem';
 import { loadUsers } from '../utils/users';
 
 export default function ProjectModal({ project, onSave, onCancel }) {
-  const [title, setTitle]           = useState(project.title);
-  const [agent, setAgent]           = useState(project.agent || '');
-  const [deadline, setDeadline]     = useState(project.deadline);
-  const [status, setStatus]         = useState(project.status);
-  const [tasks, setTasks]           = useState(project.tasks);
+  const [title, setTitle]             = useState(project.title || '');
+  const [agent, setAgent]             = useState(project.agent || '');
+  const [deadline, setDeadline]       = useState(project.deadline || '');
+  const [status, setStatus]           = useState(project.status || 'upcoming');
+  const [tasks, setTasks]             = useState(project.tasks || []);
   const [newTaskText, setNewTaskText] = useState('');
 
   // load your existing user list
@@ -34,20 +34,30 @@ export default function ProjectModal({ project, onSave, onCancel }) {
 
   // Save handler
   const handleSubmit = () => {
-    onSave({
+    const updatedProject = {
       ...project,
       title,
       agent,
       deadline,
       status,
       tasks
-    });
+    };
+
+    if (onSave) {
+      onSave(updatedProject);   // ✅ immediately tell Dashboard about new/edited project
+    }
+
+    if (onCancel) {
+      onCancel();               // ✅ close modal after save
+    }
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-lg w-full max-w-lg">
-        <h2 className="text-2xl font-semibold mb-4">Edit Project</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          {project.id ? 'Edit Project' : 'New Project'}
+        </h2>
 
         {/* Title */}
         <div className="mb-4">
