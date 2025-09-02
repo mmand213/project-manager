@@ -107,7 +107,11 @@ export default function Dashboard() {
             {project.tasks && project.tasks.length > 0 && (
               <ul className="mb-4 list-disc pl-5 text-sm text-gray-700">
                 {project.tasks.map((task, index) =>
-                  task.text?.trim() !== "" ? <li key={index}>{task.text}</li> : null
+                  task.text?.trim() !== "" ? (
+                    <li key={task.id || index}>
+                      {task.text} {task.done ? "✔" : ""}
+                    </li>
+                  ) : null
                 )}
               </ul>
             )}
