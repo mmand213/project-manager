@@ -10,13 +10,18 @@ export default function Dashboard() {
   const [filter, setFilter] = useState("All");
   const [showAgentModal, setShowAgentModal] = useState(false);
 
+  // always refresh from localStorage on mount
   useEffect(() => {
-    setProjects(getProjects());
+    refreshProjects();
   }, []);
+
+  const refreshProjects = () => {
+    setProjects(getProjects() || []);
+  };
 
   const handleDelete = (id) => {
     deleteProject(id);
-    setProjects(getProjects());
+    refreshProjects();
   };
 
   const handleEdit = (project) => {
@@ -25,8 +30,10 @@ export default function Dashboard() {
   };
 
   const handleClearAll = () => {
-    clearProjects();
-    setProjects([]);
+    if (window.confirm("Are you sure you want to remove all projects?")) {
+      clearProjects();
+      setProjects([]);
+    }
   };
 
   const filteredProjects = projects.filter((project) => {
@@ -54,13 +61,16 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
         {["All", "In Progress", "Completed", "Upcoming"].map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
             className={`px-3 py-1 rounded ${
-              filter === status ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
+              filter === status
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 text-gray-800"
             }`}
           >
             {status}
@@ -74,26 +84,34 @@ export default function Dashboard() {
         </button>
       </div>
 
+      {/* Projects */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProjects.map((project) => (
           <div key={project.id} className="bg-white p-6 rounded shadow">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">{project.title}</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              {project.title}
+            </h2>
             <p className="text-sm mb-1">
               <strong>Assigned to:</strong> {project.agent}
             </p>
             <p className="text-sm mb-1">
-              <strong>Tasks:</strong> {project.tasks.filter((t) => t.trim() !== "").length}/{project.tasks.length}
+              <strong>Tasks:</strong>{" "}
+              {project.tasks?.filter((t) => t.trim() !== "").length || 0}/
+              {project.tasks?.length || 0}
             </p>
             <p className="text-sm mb-4">
               <strong>Deadline:</strong> {project.deadline}
             </p>
+
+            {/* Tasks under project */}
             {project.tasks && project.tasks.length > 0 && (
               <ul className="mb-4 list-disc pl-5 text-sm text-gray-700">
-                {project.tasks.map((task, index) => (
-                  <li key={index}>{task}</li>
-                ))}
+                {project.tasks.map((task, index) =>
+                  task.trim() !== "" ? <li key={index}>{task}</li> : null
+                )}
               </ul>
             )}
+
             <div className="flex gap-3 text-sm">
               <button
                 onClick={() => handleEdit(project)}
@@ -112,18 +130,20 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Project modal */}
       {showModal && (
         <ProjectFormModal
           isOpen={showModal}
           onClose={() => {
             setShowModal(false);
             setEditingProject(null);
-            setProjects(getProjects());
+            refreshProjects();
           }}
           editingProject={editingProject}
         />
       )}
 
+      {/* Agent modal */}
       {showAgentModal && (
         <AddAgentModal
           isOpen={showAgentModal}
