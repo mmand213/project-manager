@@ -1,26 +1,37 @@
-import React from 'react'
-import ProjectCard from './ProjectCard'
 
-export default function Dashboard({ projects, filter, search, onEdit, onDelete }) {
-  // apply status + search filters
-  const filtered = projects
-    .filter(p => filter === 'all' || p.status === filter)
-    .filter(p => p.title.toLowerCase().includes(search.toLowerCase()))
+import React from 'react';
 
-  if (filtered.length === 0) {
-    return <p className="text-gray-500">No projects found.</p>
-  }
-
+const Dashboard = ({ projects }) => {
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-      {filtered.map(p => (
-        <ProjectCard
-          key={p.id}
-          project={p}
-          onEdit={() => onEdit(p)}
-          onDelete={() => onDelete(p.id)}
-        />
-      ))}
+    <div className="dashboard">
+      {projects.length === 0 ? (
+        <p>No projects found.</p>
+      ) : (
+        projects.map((project) => (
+          <div className="project-card" key={project.id}>
+            <h3>{project.title}</h3>
+            <p><strong>Assigned to:</strong> {project.agent}</p>
+            <p>Tasks: {project.tasks?.length || 0}/{project.tasks?.length || 0}</p>
+            <p><strong>Deadline:</strong> {project.deadline}</p>
+            {project.tasks && project.tasks.length > 0 && (
+              <ul className="task-list">
+                {project.tasks.map((task, idx) => (
+                  <li key={idx}>
+                    <input type="checkbox" disabled checked={task.completed} />
+                    {task.name}
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="project-actions">
+              <button>Edit</button>
+              <button className="delete-btn">Delete</button>
+            </div>
+          </div>
+        ))
+      )}
     </div>
-  )
-}
+  );
+};
+
+export default Dashboard;
