@@ -10,17 +10,13 @@ export default function Dashboard() {
   const [showAgentModal, setShowAgentModal] = useState(false);
 
   useEffect(() => {
-    refreshProjects();
-  }, []);
-
-  const refreshProjects = () => {
     try {
       setProjects(loadProjects() || []);
     } catch (err) {
       console.error("Error loading projects:", err);
       setProjects([]);
     }
-  };
+  }, []);
 
   const handleDelete = (id) => {
     try {
@@ -67,7 +63,7 @@ export default function Dashboard() {
                   {project.tasks.map((task, index) =>
                     task.text?.trim() !== "" ? (
                       <li key={task.id || index}>
-                        {task.text} {task.done ? "✔" : ""}
+                        {task.text} {task.completed ? "✔" : ""}
                       </li>
                     ) : null
                   )}
@@ -96,13 +92,36 @@ export default function Dashboard() {
       {/* Project modal */}
       {showModal && (
         <ProjectModal
-          isOpen={showModal}
-          onClose={() => {
+          project={
+            editingProject || {
+              id: Date.now(),
+              title: "",
+              agent: "",
+              deadline: "",
+              status: "upcoming",
+              tasks: [],
+            }
+          }
+          onSave={(newProject) => {
+            let updated;
+            if (projects.some((p) => p.id === newProject.id)) {
+              // update existing
+              updated = projects.map((p) =>
+                p.id === newProject.id ? newProject : p
+              );
+            } else {
+              // add new
+              updated = [...projects, newProject];
+            }
+            saveProjects(updated);
+            setProjects(updated); // ✅ refresh immediately
             setShowModal(false);
             setEditingProject(null);
-            refreshProjects();
           }}
-          editingProject={editingProject}
+          onCancel={() => {
+            setShowModal(false);
+            setEditingProject(null);
+          }}
         />
       )}
 
