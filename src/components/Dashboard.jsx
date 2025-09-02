@@ -15,13 +15,22 @@ export default function Dashboard() {
   }, []);
 
   const refreshProjects = () => {
-    setProjects(loadProjects() || []);
+    try {
+      setProjects(loadProjects() || []);
+    } catch (err) {
+      console.error("Error loading projects:", err);
+      setProjects([]);
+    }
   };
 
   const handleDelete = (id) => {
-    const updated = projects.filter((p) => p.id !== id);
-    saveProjects(updated);
-    setProjects(updated);
+    try {
+      const updated = projects.filter((p) => p.id !== id);
+      saveProjects(updated);
+      setProjects(updated);
+    } catch (err) {
+      console.error("Delete error:", err);
+    }
   };
 
   const handleEdit = (project) => {
@@ -31,7 +40,7 @@ export default function Dashboard() {
 
   const handleClearAll = () => {
     if (window.confirm("Are you sure you want to remove all projects?")) {
-      saveProjects([]); // clears everything
+      saveProjects([]);
       setProjects([]);
     }
   };
@@ -43,23 +52,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-100 py-10 px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setShowModal(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            New Project
-          </button>
-          <button
-            onClick={() => setShowAgentModal(true)}
-            className="border border-blue-600 text-blue-600 px-4 py-2 rounded hover:bg-blue-50"
-          >
-            Add Agent
-          </button>
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Dashboard</h1>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2 mb-4">
@@ -103,7 +96,7 @@ export default function Dashboard() {
               <strong>Deadline:</strong> {project.deadline}
             </p>
 
-            {/* Tasks under project */}
+            {/* Tasks */}
             {project.tasks && project.tasks.length > 0 && (
               <ul className="mb-4 list-disc pl-5 text-sm text-gray-700">
                 {project.tasks.map((task, index) =>
