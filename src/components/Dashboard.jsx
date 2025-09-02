@@ -9,23 +9,26 @@ export default function Dashboard() {
   const [editingProject, setEditingProject] = useState(null);
   const [showAgentModal, setShowAgentModal] = useState(false);
 
+  // Initial load
   useEffect(() => {
-    try {
+    setProjects(loadProjects() || []);
+  }, []);
+
+  // Listen for global "projects changed" events (e.g., modal opened from navbar)
+  useEffect(() => {
+    const handleProjectsChanged = () => {
       setProjects(loadProjects() || []);
-    } catch (err) {
-      console.error("Error loading projects:", err);
-      setProjects([]);
-    }
+    };
+    window.addEventListener("projects:changed", handleProjectsChanged);
+    return () => {
+      window.removeEventListener("projects:changed", handleProjectsChanged);
+    };
   }, []);
 
   const handleDelete = (id) => {
-    try {
-      const updated = projects.filter((p) => p.id !== id);
-      saveProjects(updated);
-      setProjects(updated);
-    } catch (err) {
-      console.error("Delete error:", err);
-    }
+    const updated = projects.filter((p) => p.id !== id);
+    saveProjects(updated);
+    setProjects(updated);
   };
 
   const handleEdit = (project) => {
@@ -89,7 +92,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {/* Project modal */}
+      {/* Project modal (used when you click Edit on a card) */}
       {showModal && (
         <ProjectModal
           project={
@@ -114,7 +117,9 @@ export default function Dashboard() {
               updated = [...projects, newProject];
             }
             saveProjects(updated);
-            setProjects(updated); // ✅ refresh immediately
+            setProjects(updated); // immediate UI update
+            // also broadcast to keep everything in sync
+            window.dispatchEvent(new Event("projects:changed"));
             setShowModal(false);
             setEditingProject(null);
           }}
@@ -125,7 +130,7 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Agent modal */}
+      {/* Agent modal (kept as-is if you use it elsewhere) */}
       {showAgentModal && (
         <AddAgentModal
           isOpen={showAgentModal}
