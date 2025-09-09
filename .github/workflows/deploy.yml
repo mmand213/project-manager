@@ -17,16 +17,21 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
+      # Use npm install (no lockfile required)
       - name: Install deps
-        run: npm ci
+        run: npm install
 
       - name: Build (Vite)
         run: npm run build
         env:
-          # 👇 pulled from GitHub repo: Settings → Secrets and variables → Actions → Variables
+          # If you saved them under Actions → Variables
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          # If instead you used Secrets, comment the two lines above and use:
+          # VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          # VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
