@@ -1,78 +1,152 @@
 // src/App.jsx
-import React, { useState, useEffect } from 'react'
-import NinjaStarsBackground from './components/NinjaStarsBackground'
-import Dashboard from './components/Dashboard'
-import ProjectsView from './components/ProjectsView'
-import ReportsView from './components/ReportsView'
-import ProjectModal from './components/ProjectModal'
-import AgentModal from './components/AddAgentModal'
-import FilterPanel from './components/FilterPanel'
-import SearchBar from './components/SearchBar'
-import Settings from './components/Settings'
-import { loadProjects, saveProjects } from './utils/storage'
-import { loadUsers, saveUsers } from './utils/users'
+import React, { useState, useEffect } from 'react';
+
+import NinjaStarsBackground from './components/NinjaStarsBackground';
+import Dashboard from './components/Dashboard';
+import ProjectsView from './components/ProjectsView';
+import ReportsView from './components/ReportsView';
+import ProjectModal from './components/ProjectModal';
+import AgentModal from './components/AddAgentModal';
+import FilterPanel from './components/FilterPanel';
+import SearchBar from './components/SearchBar';
+import Settings from './components/Settings';
+import AuthBox from './components/AuthBox';
+
+import { loadUsers, saveUsers } from './utils/users';
+
+// ✅ Supabase client & remote CRUD helpers (you put these under src/components/)
+import { supabase } from './components/supabaseClient';
+import {
+  fetchProjects,
+  upsertProject,
+  deleteProject as removeProject,
+  clearAllProjects,
+  subscribeProjects,
+  signOut,
+} from './components/remoteProjects';
 
 export default function App() {
-  // PROJECT STATE
-  const [projects, setProjects] = useState([])
-  const [filter,   setFilter]   = useState('all')
-  const [search,   setSearch]   = useState('')
-  const [modalProject, setModalProject] = useState(null)
+  /** AUTH **/
+  const [authUser, setAuthUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
 
-  // AGENT STATE
-  const [agentModalOpen, setAgentModalOpen] = useState(false)
+  /** PROJECT STATE (remote via Supabase) **/
+  const [projects, setProjects] = useState([]);
+  const [filter,   setFilter]   = useState('all');
+  const [search,   setSearch]   = useState('');
+  const [modalProject, setModalProject] = useState(null);
 
-  // TABS: dashboard|projects|reports|settings
-  const [activeTab, setActiveTab] = useState('dashboard')
+  /** AGENT STATE (your local “users” list stays as-is for now) **/
+  const [agentModalOpen, setAgentModalOpen] = useState(false);
 
-  // USERS (AGENTS)
-  const [users, setUsers] = useState([])
+  /** TABS: dashboard | projects | reports | settings **/
+  const [activeTab, setActiveTab] = useState('dashboard');
 
-  // load + persist projects
-  useEffect(() => { setProjects(loadProjects()) }, [])
-  useEffect(() => { saveProjects(projects) }, [projects])
+  /** Local agents list (unchanged) **/
+  const [users, setUsers] = useState([]);
+  useEffect(() => { setUsers(loadUsers()) }, []);
 
-  // load users
-  useEffect(() => { setUsers(loadUsers()) }, [])
+  /* ---------- AUTH WIRING ---------- */
+  useEffect(() => {
+    // initial load
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setAuthUser(user ?? null);
+      setAuthReady(true);
+    });
+    // react to sign-in/out
+    const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
+      setAuthUser(session?.user ?? null);
+    });
+    return () => sub.subscription.unsubscribe();
+  }, []);
 
-  // PROJECT MODAL handlers
+  /* ---------- LOAD PROJECTS AFTER LOGIN ---------- */
+  useEffect(() => {
+    if (!authReady || !authUser) return;
+
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await fetchProjects();
+        if (mounted) setProjects(data);
+      } catch (e) {
+        console.error(e);
+      }
+    })();
+
+    // Optional realtime refresh on any change to projects
+    const unsubscribe = subscribeProjects(async () => {
+      try {
+        const data = await fetchProjects();
+        setProjects(data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      unsubscribe && unsubscribe();
+    };
+  }, [authReady, authUser]);
+
+  /* ---------- PROJECT MODAL HANDLERS ---------- */
   const openProjectModal = (proj) =>
     setModalProject(
       proj || {
-        id: Date.now(),
+        // id is created by DB; keep undefined for new
+        id: undefined,
         title: '',
         agent: '',
         tasks: [],
         status: 'upcoming',
         deadline: ''
       }
-    )
-  const closeProjectModal = () => setModalProject(null)
-  function saveProject(proj) {
-    setProjects(ps => {
-      const exists = ps.find(p => p.id === proj.id)
-      return exists
-        ? ps.map(p => p.id === proj.id ? proj : p)
-        : [...ps, proj]
-    })
-    closeProjectModal()
-  }
+    );
+  const closeProjectModal = () => setModalProject(null);
 
-  // AGENT MODAL handlers
-  const openAgentModal = () => setAgentModalOpen(true)
-  const closeAgentModal = () => setAgentModalOpen(false)
-  function saveAgent(agent) {
-    const updated = saveUsers(agent)
-    setUsers(updated)
-    closeAgentModal()
-  }
-
-  // CLEAR ALL (projects)
-  const clearAll = () => {
-    if (window.confirm('Really clear all projects?')) {
-      setProjects([])
-      saveProjects([])
+  async function saveProject(proj) {
+    try {
+      await upsertProject(proj);
+      const data = await fetchProjects();
+      setProjects(data);
+      closeProjectModal();
+    } catch (e) {
+      alert(e.message);
     }
+  }
+
+  /* ---------- AGENT (LOCAL) MODAL ---------- */
+  const openAgentModal = () => setAgentModalOpen(true);
+  const closeAgentModal = () => setAgentModalOpen(false);
+  function saveAgent(agent) {
+    const updated = saveUsers(agent);
+    setUsers(updated);
+    closeAgentModal();
+  }
+
+  /* ---------- CLEAR ALL (REMOTE) ---------- */
+  const clearAll = async () => {
+    if (window.confirm('Really clear all projects?')) {
+      try {
+        await clearAllProjects();
+        setProjects([]);
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+  };
+
+  /* ---------- RENDER ---------- */
+
+  // Wait until we know auth state
+  if (!authReady) {
+    return <div className="p-6 text-gray-600">Loading…</div>;
+  }
+
+  // Not signed in? Show Auth
+  if (!authUser) {
+    return <AuthBox />;
   }
 
   return (
@@ -100,7 +174,7 @@ export default function App() {
                   activeTab === tab
                     ? 'text-primary border-b-2 border-primary'
                     : 'text-gray-600 hover:text-primary'
-                  } pb-1 transition`}
+                } pb-1 transition`}
               >
                 {tab.charAt(0).toUpperCase() + tab.slice(1)}
               </button>
@@ -121,6 +195,14 @@ export default function App() {
               className="px-4 py-2 border-2 border-primary text-primary rounded-full hover:bg-primaryLight hover:text-white transition"
             >
               Add Agent
+            </button>
+
+            <button
+              onClick={() => signOut()}
+              className="px-3 py-2 border rounded text-gray-600 hover:bg-gray-50"
+              title={authUser?.email || 'Sign out'}
+            >
+              Sign out
             </button>
           </div>
         </div>
@@ -147,7 +229,10 @@ export default function App() {
               filter={filter}
               search={search}
               onEdit={openProjectModal}
-              onDelete={id => setProjects(ps => ps.filter(p => p.id !== id))}
+              onDelete={async id => {
+                await removeProject(id);
+                setProjects(await fetchProjects());
+              }}
             />
           </>
         )}
@@ -156,7 +241,10 @@ export default function App() {
           <ProjectsView
             projects={projects}
             onEdit={openProjectModal}
-            onDelete={id => setProjects(ps => ps.filter(p => p.id !== id))}
+            onDelete={async id => {
+              await removeProject(id);
+              setProjects(await fetchProjects());
+            }}
           />
         )}
 
@@ -189,5 +277,5 @@ export default function App() {
         )}
       </main>
     </>
-  )
+  );
 }
