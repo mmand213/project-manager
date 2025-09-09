@@ -17,19 +17,18 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          # NOTE: no cache here, because there's no lockfile in the repo
 
-      # Use npm install (no lockfile required)
       - name: Install deps
-        run: npm install
+        run: npm install --no-fund --no-audit
 
       - name: Build (Vite)
         run: npm run build
         env:
-          # If you saved them under Actions → Variables
+          # Use Variables if you created them in Settings → Secrets and variables → Actions → Variables
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
-          # If instead you used Secrets, comment the two lines above and use:
+          # If you created them under Secrets instead, comment the two lines above and use:
           # VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           # VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
