@@ -3,25 +3,35 @@ import React, { useState, useRef } from 'react';
 import Papa from 'papaparse';
 import { saveProjects } from '../utils/storage';
 
+// Escape values for CSV (quotes, commas, newlines)
+function escapeCSV(val) {
+  if (val == null) return '';
+  const s = String(val);
+  if (/[",\n\r]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+// small helper to download a blob
+function download(filename, content, mime) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function ReportsView({ projects }) {
   const [format, setFormat] = useState('json');
   const fileInput = useRef(null);
 
-  // small helper to download a blob
-  const download = (filename, content, mime) => {
-    const blob = new Blob([content], { type: mime });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-  };
-
   // Export only the project fields (omit `id`)
   const handleExport = () => {
+    // Strip id like before
     const stripped = projects.map(({ id, ...rest }) => rest);
+
     if (format === 'json') {
       download(
         `projects-${Date.now()}.json`,
@@ -29,12 +39,43 @@ export default function ReportsView({ projects }) {
         'application/json'
       );
     } else {
-      const csv = Papa.unparse(stripped);
-      download(
-        `projects-${Date.now()}.csv`,
-        csv,
-        'text/csv'
-      );
+      // Build a clean CSV with flattened tasks
+      // Choose the columns you want in the CSV:
+      const headers = ['title', 'agent', 'status', 'deadline', 'tasks_count', 'tasks'];
+
+      const rows = stripped.map((p) => {
+        const tasksPretty = (p.tasks || [])
+          .filter((t) => t?.text?.trim())
+          .map((t) => `${t.completed ? '✓' : '•'} ${t.text}`)
+          .join('\n'); // newline-separated inside one cell
+
+        return {
+          title: p.title || '',
+          agent: p.agent || '',
+          status: p.status || '',
+          deadline: p.deadline || '',
+          tasks_count: (p.tasks || []).length,
+          tasks: tasksPretty,
+        };
+      });
+
+      const csv =
+        [headers.map(escapeCSV).join(',')]
+          .concat(
+            rows.map((r) =>
+              [
+                escapeCSV(r.title),
+                escapeCSV(r.agent),
+                escapeCSV(r.status),
+                escapeCSV(r.deadline),
+                escapeCSV(r.tasks_count),
+                escapeCSV(r.tasks),
+              ].join(',')
+            )
+          )
+          .join('\r\n');
+
+      download(`projects-${Date.now()}.csv`, csv, 'text/csv;charset=utf-8;');
     }
   };
 
